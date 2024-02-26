@@ -1,7 +1,8 @@
 package ee.taltech.game.server.packets;
 
 public class PacketSendCoordinates extends Packet{
-    private int x, y;
+    private int x;
+    private int y;
     private int playerID;
 
     public int getX() {
