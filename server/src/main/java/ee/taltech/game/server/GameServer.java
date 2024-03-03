@@ -16,6 +16,13 @@ public class GameServer {
     private Server server;
     private Map<Integer, Player> players = new HashMap<>();
 
+    /**
+     * Create game-server.
+     * <p>
+     *     Creates a new server, registers it to the network and connects it to a port.
+     *     A listener is added for incoming packets.
+     * </p>
+     */
     public GameServer() {
         server = new Server();
         server.start();
@@ -26,6 +33,20 @@ public class GameServer {
             throw new ConnectionException(e.getMessage());
         }
         server.addListener(new Listener() {
+            /**
+             * Create listener for incoming packets.
+             * <p>
+             *     There are two kinds of packets the server receives.
+             *     1. The packet PacketPlayerConnect is received when a player joins the game. All of the connected
+             *     players existence information is sent to the new connected player. The new connected player is
+             *     created, added to the players map and its existence information is sent to all other connected
+             *     players.
+             *     2. The packet PacketSendCoordinates is received constantly with updated players' location. The
+             *     coordinates of a player are then sent to all other players that are connected.
+             * </p>
+             * @param connection
+             * @param object
+             */
             @Override
             public void received (Connection connection, Object object) {
                 if (object instanceof PacketPlayerConnect packet) {
@@ -48,6 +69,12 @@ public class GameServer {
                     server.sendToAllUDP(object);
                 }
             }
+
+            /**
+             * Remove disconnected player from players map.
+             *
+             * @param connection (TCP or UDP)
+             */
             @Override
             public void disconnected(Connection connection) {
                 players.remove(connection.getID());
