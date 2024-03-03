@@ -44,7 +44,7 @@ public class GameServer {
                     int playerID = connection.getID();
                     Player player = players.get(playerID);
                     player.setX(packet.getX());
-                    player.setY(((PacketSendCoordinates) object).getY());
+                    player.setY(packet.getY());
                     server.sendToAllUDP(object);
                 }
             }

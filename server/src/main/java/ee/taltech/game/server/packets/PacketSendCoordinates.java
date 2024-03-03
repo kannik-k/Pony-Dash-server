@@ -1,23 +1,23 @@
 package ee.taltech.game.server.packets;
 
 public class PacketSendCoordinates extends Packet{
-    private int x;
-    private int y;
+    private float x;
+    private float y;
     private int playerID;
 
-    public int getX() {
+    public float getX() {
         return x;
     }
 
-    public void setX(int x) {
+    public void setX(float x) {
         this.x = x;
     }
 
-    public int getY() {
+    public float getY() {
         return y;
     }
 
-    public void setY(int y) {
+    public void setY(float y) {
         this.y = y;
     }
 
