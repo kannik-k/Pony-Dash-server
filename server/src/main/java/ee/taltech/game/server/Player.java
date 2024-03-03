@@ -2,8 +2,8 @@ package ee.taltech.game.server;
 
 public class Player {
     private String playerName;
-    private int x = 0;
-    private int y = 0;
+    private float x = 0;
+    private float y = 0;
 
     public Player(String playerName) {
         this.playerName = playerName;
@@ -17,19 +17,19 @@ public class Player {
         this.playerName = playerName;
     }
 
-    public int getX() {
+    public float getX() {
         return x;
     }
 
-    public void setX(int x) {
+    public void setX(float x) {
         this.x = x;
     }
 
-    public int getY() {
+    public float getY() {
         return y;
     }
 
-    public void setY(int y) {
+    public void setY(float y) {
         this.y = y;
     }
 }
