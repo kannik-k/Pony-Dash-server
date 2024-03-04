@@ -12,6 +12,11 @@ public class Network {
         // Prevent instantiation
     }
 
+    /**
+     * Register endpoint to the network.
+     *
+     * @param endPoint The endpoint.
+     */
     public static void register (EndPoint endPoint) {
         Kryo kryo = endPoint.getKryo();
         kryo.register(Packet.class);
