@@ -5,6 +5,8 @@ public class Player {
     private float x = 0;
     private float y = 0;
 
+    public Player() {}
+
     public Player(String playerName) {
         this.playerName = playerName;
     }

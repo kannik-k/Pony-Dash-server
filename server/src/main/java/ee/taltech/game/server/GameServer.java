@@ -4,17 +4,20 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import ee.taltech.game.server.exceptions.ConnectionException;
+import ee.taltech.game.server.packets.PacketLobby;
 import ee.taltech.game.server.packets.PacketPlayerConnect;
 import ee.taltech.game.server.packets.PacketSendCoordinates;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GameServer {
 
     private Server server;
     private Map<Integer, Player> players = new HashMap<>();
+    private Map<Integer, List<String>> lobbies = new HashMap<>();
 
     /**
      * Create game-server.
@@ -32,6 +35,7 @@ public class GameServer {
         } catch (IOException e) {
             throw new ConnectionException(e.getMessage());
         }
+
         server.addListener(new Listener() {
             /**
              * Create listener for incoming packets.
@@ -49,6 +53,16 @@ public class GameServer {
              */
             @Override
             public void received (Connection connection, Object object) {
+                if (object instanceof PacketLobby packet) {
+                    int lobbyID = packet.getLobbyID();
+                    List<String> lobbyPlayers = packet.getPlayers();
+                    if (lobbies.containsKey(lobbyID)) {
+                        List<String> existingPlayers = lobbies.get(lobbyID);
+                        existingPlayers.addAll(lobbyPlayers);
+                    } else {
+                        lobbies.put(lobbyID, lobbyPlayers);
+                    }
+                }
                 if (object instanceof PacketPlayerConnect packet) {
                     for (Map.Entry<Integer, Player> set : players.entrySet()) {
                         PacketPlayerConnect packetPlayerConnect = new PacketPlayerConnect();
