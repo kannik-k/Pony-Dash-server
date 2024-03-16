@@ -3,8 +3,12 @@ package ee.taltech.game.server;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
 import ee.taltech.game.server.packets.Packet;
+import ee.taltech.game.server.packets.PacketLobby;
 import ee.taltech.game.server.packets.PacketPlayerConnect;
 import ee.taltech.game.server.packets.PacketSendCoordinates;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Network {
 
@@ -22,5 +26,10 @@ public class Network {
         kryo.register(Packet.class);
         kryo.register(PacketPlayerConnect.class);
         kryo.register(PacketSendCoordinates.class);
+        kryo.register(PacketLobby.class);
+        kryo.register(ArrayList.class);
+        kryo.register(List.class);
+        kryo.register(ee.taltech.game.server.Player.class);
+        kryo.register(int.class);
     }
 }
