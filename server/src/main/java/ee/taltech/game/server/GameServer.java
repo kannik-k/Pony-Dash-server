@@ -4,11 +4,11 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import ee.taltech.game.server.exceptions.ConnectionException;
-import ee.taltech.game.server.packets.PacketLobby;
-import ee.taltech.game.server.packets.PacketPlayerConnect;
-import ee.taltech.game.server.packets.PacketSendCoordinates;
+import ee.taltech.game.server.lobby.Lobby;
+import ee.taltech.game.server.packets.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,8 @@ public class GameServer {
 
     private Server server;
     private Map<Integer, Player> players = new HashMap<>();
-    private Map<Integer, List<String>> lobbies = new HashMap<>();
+    private int gameId = 1;
+    private final List<Game> games = new ArrayList<>();
 
     /**
      * Create game-server.
@@ -29,6 +30,7 @@ public class GameServer {
     public GameServer() {
         server = new Server();
         server.start();
+        Lobby lobby = new Lobby();
         Network.register(server);
         try {
             server.bind(8080, 8081);
@@ -53,15 +55,47 @@ public class GameServer {
              */
             @Override
             public void received (Connection connection, Object object) {
-                if (object instanceof PacketLobby packet) {
-                    int lobbyID = packet.getLobbyID();
-                    List<String> lobbyPlayers = packet.getPlayers();
-                    if (lobbies.containsKey(lobbyID)) {
-                        List<String> existingPlayers = lobbies.get(lobbyID);
-                        existingPlayers.addAll(lobbyPlayers);
-                    } else {
-                        lobbies.put(lobbyID, lobbyPlayers);
+
+                if (object instanceof OnStartGame packet) {
+                    System.out.println(packet);
+                    Game game = new Game(gameId);
+                    packet.setGameId(gameId);
+                    for (GameConnection peer : lobby.getPeers()) {
+                        peer.setGameId(gameId);
+                        peer.sendTCP(packet);
+                        game.getPlayers().add(peer);
                     }
+                    lobby.clearPeers();
+                    games.add(game);
+                    gameId++;
+                }
+
+                if (object instanceof PlayerJoinPacket joinedPlayer && connection instanceof GameConnection) {
+                    GameConnection player = (GameConnection) connection;
+                    player.setUserName(joinedPlayer.getUserName());
+
+                    ArrayList<OnLobbyJoin> lobbyPlayers = new ArrayList<>();
+
+                    OnLobbyJoin joinedPeer = new OnLobbyJoin();
+                    joinedPeer.setId(player.getID());
+                    joinedPeer.setName(player.getUserName());
+
+                    for (GameConnection peer : lobby.getPeers()) {
+                        if (peer.getGameId() == 0) {
+                            // peer.sendTCP(joinedPeer);
+                            OnLobbyJoin join2 = new OnLobbyJoin();
+                            join2.setId(peer.getID());
+                            join2.setName(peer.getUserName());
+                            lobbyPlayers.add(join2);
+                        }
+                    }
+                    OnLobbyList list = new OnLobbyList();
+                    list.setNetId(player.getID());
+                    list.setPeers(lobbyPlayers);
+
+                    // player.sendTCP(list);
+
+                    lobby.addPeer(player);
                 }
                 if (object instanceof PacketPlayerConnect packet) {
                     for (Map.Entry<Integer, Player> set : players.entrySet()) {
@@ -77,9 +111,9 @@ public class GameServer {
                 }
                 if (object instanceof PacketSendCoordinates packet) {
                     int playerID = connection.getID();
-                    Player player = players.get(playerID);
-                    player.setX(packet.getX());
-                    player.setY(packet.getY());
+                    Player peer = players.get(playerID);
+                    peer.setX(packet.getX());
+                    peer.setY(packet.getY());
                     server.sendToAllUDP(object);
                 }
             }
