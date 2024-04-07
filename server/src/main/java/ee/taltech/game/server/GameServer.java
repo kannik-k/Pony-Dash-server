@@ -19,6 +19,7 @@ public class GameServer {
     private Map<Integer, Player> players = new HashMap<>();
     private int gameId = 1;
     private final List<Game> games = new ArrayList<>();
+    Lobby lobby = new Lobby();
 
     /**
      * Create game-server.
@@ -30,7 +31,6 @@ public class GameServer {
     public GameServer() {
         server = new Server();
         server.start();
-        Lobby lobby = new Lobby();
         Network.register(server);
         try {
             server.bind(8080, 8081);
@@ -62,7 +62,7 @@ public class GameServer {
                     packet.setGameId(gameId);
                     for (GameConnection peer : lobby.getPeers()) {
                         peer.setGameId(gameId);
-                        peer.sendTCP(packet);
+                        peer.sendUDP(packet);
                         game.getPlayers().add(peer);
                     }
                     lobby.clearPeers();
@@ -70,9 +70,13 @@ public class GameServer {
                     gameId++;
                 }
 
-                if (object instanceof PlayerJoinPacket joinedPlayer && connection instanceof GameConnection) {
+                if (object instanceof PlayerJoinPacket joinedPlayer) {
                     GameConnection player = (GameConnection) connection;
+                    System.out.println(joinedPlayer);
+                    System.out.println(player);
                     player.setUserName(joinedPlayer.getUserName());
+                    OnStartGame startPacket = new OnStartGame();
+                    player.sendUDP(startPacket);
 
                     ArrayList<OnLobbyJoin> lobbyPlayers = new ArrayList<>();
 
@@ -82,7 +86,7 @@ public class GameServer {
 
                     for (GameConnection peer : lobby.getPeers()) {
                         if (peer.getGameId() == 0) {
-                            // peer.sendTCP(joinedPeer);
+                            peer.sendTCP(joinedPeer);
                             OnLobbyJoin join2 = new OnLobbyJoin();
                             join2.setId(peer.getID());
                             join2.setName(peer.getUserName());
@@ -93,9 +97,10 @@ public class GameServer {
                     list.setNetId(player.getID());
                     list.setPeers(lobbyPlayers);
 
-                    // player.sendTCP(list);
+                    player.sendTCP(list);
 
                     lobby.addPeer(player);
+                    System.out.println(lobby.getPeers());
                 }
                 if (object instanceof PacketPlayerConnect packet) {
                     for (Map.Entry<Integer, Player> set : players.entrySet()) {

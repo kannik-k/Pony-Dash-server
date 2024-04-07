@@ -30,9 +30,9 @@ public class Network {
         kryo.register(int.class);
 
         kryo.register(PlayerJoinPacket.class);
+        kryo.register(OnStartGame.class);
         kryo.register(GameConnection.class);
         kryo.register(Game.class);
-        kryo.register(OnStartGame.class);
         kryo.register(OnLobbyJoin.class);
         kryo.register(OnLobbyList.class);
     }
