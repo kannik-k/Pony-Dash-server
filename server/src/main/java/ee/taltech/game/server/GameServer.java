@@ -60,9 +60,10 @@ public class GameServer {
                     System.out.println(packet);
                     Game game = new Game(gameId);
                     packet.setGameId(gameId);
-                    for (GameConnection peer : lobby.getPeers()) {
+                    for (PlayerJoinPacket peer : lobby.getPeers()) {
                         peer.setGameId(gameId);
-                        peer.sendUDP(packet);
+                        server.sendToTCP(connection.getID(), packet);
+                        // peer.sendUDP(packet);
                         game.getPlayers().add(peer);
                     }
                     lobby.clearPeers();
@@ -71,35 +72,33 @@ public class GameServer {
                 }
 
                 if (object instanceof PlayerJoinPacket joinedPlayer) {
-                    GameConnection player = (GameConnection) connection;
-                    System.out.println(joinedPlayer);
-                    System.out.println(player);
-                    player.setUserName(joinedPlayer.getUserName());
-                    OnStartGame startPacket = new OnStartGame();
-                    player.sendUDP(startPacket);
+                    joinedPlayer.setUserName(joinedPlayer.getUserName());
 
                     ArrayList<OnLobbyJoin> lobbyPlayers = new ArrayList<>();
 
                     OnLobbyJoin joinedPeer = new OnLobbyJoin();
-                    joinedPeer.setId(player.getID());
-                    joinedPeer.setName(player.getUserName());
-
-                    for (GameConnection peer : lobby.getPeers()) {
+                    joinedPeer.setId(joinedPlayer.getId());
+                    joinedPeer.setName(joinedPlayer.getUserName());
+                    System.out.println(lobby.getPeers());
+                    for (PlayerJoinPacket peer : lobby.getPeers()) {
+                        System.out.println("in the loop");
                         if (peer.getGameId() == 0) {
-                            peer.sendTCP(joinedPeer);
+                            server.sendToTCP(connection.getID(), joinedPeer);
+                            // peer.sendTCP(joinedPeer);
                             OnLobbyJoin join2 = new OnLobbyJoin();
-                            join2.setId(peer.getID());
+                            join2.setId(peer.getId());
                             join2.setName(peer.getUserName());
                             lobbyPlayers.add(join2);
                         }
                     }
                     OnLobbyList list = new OnLobbyList();
-                    list.setNetId(player.getID());
+                    list.setNetId(joinedPlayer.getId());
                     list.setPeers(lobbyPlayers);
 
-                    player.sendTCP(list);
+                    server.sendToTCP(connection.getID(), list);
+                    // joinedPlayer.sendTCP(list);
 
-                    lobby.addPeer(player);
+                    lobby.addPeer(joinedPlayer);
                     System.out.println(lobby.getPeers());
                 }
                 if (object instanceof PacketPlayerConnect packet) {
