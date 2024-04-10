@@ -6,13 +6,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import java.io.File;
-import java.util.Objects;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 
@@ -34,68 +31,16 @@ public class GameWorld {
         return collisions;
     }
 
-    /*
-    private void readTilemapData () {
-        try {
-            File file = new File("Server/data/Pony_dash_for_spike_salvation_map.tmx");
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(file);
-            doc.getDocumentElement().normalize();
-            NodeList nodeList = doc.getElementsByTagName("layer");
-
-            // First collision layer
-            int[][] collisionsHere1 = (int[][]) getLayerCollisionsArrayAndColumns(nodeList, 6).get(0);
-
-            System.out.println(Arrays.deepToString(collisionsHere1));
-            // Second collision layer
-            int[][] collisionsHere2 = (int[][]) getLayerCollisionsArrayAndColumns(nodeList, 7).get(0);
-
-            // Combine the arrays
-            String[] columns = (String[]) getLayerCollisionsArrayAndColumns(nodeList, 6).get(1);
-            int[][] combinedCollisions = new int[columns.length][columns[1].split(",").length + 1];
-
-            for (int i = 0; i < columns.length; i++) {
-                for (int j = 0; j < columns[1].split(",").length + 1; j++) {
-                    combinedCollisions[i][j] = collisionsHere1[i][j] | collisionsHere2[i][j];
-                }
-            }
-            this.collisions = combinedCollisions;
-
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private List<Serializable[]> getLayerCollisionsArrayAndColumns(NodeList nodeList, int layerIndex) {
-        Node node = nodeList.item(layerIndex);
-        Element eElement = (Element) node;
-        String data = eElement.getElementsByTagName("data").item(0).getTextContent();
-        String[] columns = data.split("\n");
-        int[][] collisionsHere = new int[columns.length][columns[1].split(",").length + 1];
-        int y = columns.length - 1;
-        int x = 0;
-        for (String column : columns) {
-            String[] rows = column.split(",");
-            x = 0;
-            for (String row : rows) {
-                if (!Objects.equals(row, "") && Integer.parseInt(row) > 0) {
-                    collisionsHere[y][x] = 1;
-                }
-                x++;
-            }
-            y--;
-        }
-        return List.of(collisionsHere, columns);
-    }
+    /**
+     * Read map data and save map array.
      */
-
     private void readTilemapData() {
         try {
             File file = new File("Server/data/Pony_dash_for_spike_salvation_map.tmx");
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true); // For security
+            dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(file);
             doc.getDocumentElement().normalize();
@@ -106,6 +51,13 @@ public class GameWorld {
         }
     }
 
+    /**
+     * Create array of map.
+     * @param mapWidth width of map
+     * @param mapHeight height of map
+     * @param objectGroupNodes object-group elements
+     * @return int[][] 2d array of map
+     */
     private int[][] createMapArray(int mapWidth, int mapHeight, NodeList objectGroupNodes) {
         int[][] mapArray = new int[mapHeight][mapWidth]; // Initialize map array
 
@@ -118,29 +70,41 @@ public class GameWorld {
                         || objectGroupElement.getAttribute("name").equals("Platforms")) { // Check if it's the "Ground" or "Platforms" object group
                     NodeList objectNodes = objectGroupElement.getElementsByTagName("object");
                     // Iterate over each object within the object group
-                    for (int j = 0; j < objectNodes.getLength(); j++) {
-                        Element objectElement = (Element) objectNodes.item(j);
-                        double x = Double.parseDouble(objectElement.getAttribute("x")) / 16; // Tile-width is 16
-                        double y = Double.parseDouble(objectElement.getAttribute("y")) / 16; // Tile-height is 16
-                        double width = Double.parseDouble(objectElement.getAttribute("width")) / 16;
-                        double height = Double.parseDouble(objectElement.getAttribute("height")) / 16;
-                        // Mark cells in the map array as occupied for this object
-                        for (double k = y; k < y + height; k++) {
-                            for (double l = x; l < x + width; l++) {
-                                int roundedK = (int) Math.round(k); // Round k to the nearest integer
-                                int roundedL = (int) Math.round(l); // Round l to the nearest integer
-
-                                if (roundedK >= 0 && roundedK < mapHeight && roundedL >= 0 && roundedL < mapWidth) {
-                                    mapArray[roundedK][roundedL] = 1; // Or any other value representing collision
-                                }
-                            }
-                        }
-
-                    }
+                    mapArray = putCollisionsIntoArray(objectNodes, mapHeight, mapWidth, mapArray);
                 }
             }
         }
+        return mapArray;
+    }
 
+    /**
+     * Put the parts with collision into the given array and return it.
+     * @param objectNodes objects
+     * @param mapHeight height of map
+     * @param mapWidth width of map
+     * @param mapArray array with all zeros
+     * @return int[][] array where collision is marked as 1
+     */
+    private int[][] putCollisionsIntoArray(NodeList objectNodes, int mapHeight, int mapWidth, int[][] mapArray) {
+        for (int j = 0; j < objectNodes.getLength(); j++) {
+            Element objectElement = (Element) objectNodes.item(j);
+            double x = Double.parseDouble(objectElement.getAttribute("x")) / 16; // Tile-width is 16
+            double y = Double.parseDouble(objectElement.getAttribute("y")) / 16; // Tile-height is 16
+            double width = Double.parseDouble(objectElement.getAttribute("width")) / 16;
+            double height = Double.parseDouble(objectElement.getAttribute("height")) / 16;
+            // Mark cells in the map array as occupied for this object
+            for (double k = y; k < y + height; k++) {
+                for (double l = x; l < x + width; l++) {
+                    int roundedK = (int) Math.round(k); // Round k to the nearest integer
+                    int roundedL = (int) Math.round(l); // Round l to the nearest integer
+
+                    if (roundedK >= 0 && roundedK < mapHeight && roundedL >= 0 && roundedL < mapWidth) {
+                        mapArray[roundedK][roundedL] = 1; // 1 represents collision
+                    }
+                }
+            }
+
+        }
         return mapArray;
     }
 

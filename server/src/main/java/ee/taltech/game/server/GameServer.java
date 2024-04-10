@@ -9,7 +9,6 @@ import ee.taltech.game.server.packets.PacketPlayerConnect;
 import ee.taltech.game.server.packets.PacketSendCoordinates;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,8 +35,7 @@ public class GameServer {
         } catch (IOException e) {
             throw new ConnectionException(e.getMessage());
         }
-        GameWorld gameWorld = new GameWorld(1); // GameId tuleb siin hiljem ära muuta
-        System.out.println(Arrays.deepToString(gameWorld.getCollisions()));
+        GameWorld gameWorld = new GameWorld(1); // GameId tuleb siin hiljem ära muuta, hiljem tuleb kasutusele
 
         server.addListener(new Listener() {
             /**

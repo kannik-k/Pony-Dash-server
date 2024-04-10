@@ -72,6 +72,14 @@ public class AStar {
         }
     }
 
+    /**
+     * Find path from source to destination.
+     * @param srcX source x
+     * @param srcY source y
+     * @param dstX destination x
+     * @param dstY destination y
+     * @return List of path to destination
+     */
     public List<Node> findPath(int srcX, int srcY, int dstX, int dstY) {
         PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingInt(Node::getFScore));
         openSet.add(new Node(srcX, srcY));
@@ -88,6 +96,14 @@ public class AStar {
         return new ArrayList<>(); // Return empty path if none was found
     }
 
+    /**
+     * Update neighbours based on the tile that is being currently analyzed.
+     * @param current node
+     * @param dstX destination x
+     * @param dstY destination y
+     * @param openSet nodes that can still be processed
+     * @param closedSet processed nodes
+     */
     private void updateNeighbours(Node current, int dstX, int dstY, PriorityQueue<Node> openSet, Set<Node> closedSet) {
         for (int[] neighbour : neighbours) {
             int x = current.x + neighbour[0];
@@ -105,7 +121,6 @@ public class AStar {
             }
         }
     }
-
 
     private boolean isOutOfBounds(int x, int y) {
         return x < 0 || x >= maxX || y < 0 || y >= maxY;
