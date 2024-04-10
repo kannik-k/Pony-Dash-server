@@ -23,6 +23,6 @@ public class NPC {
     }
 
     private void moveThread() {
-
+        // Will use later
     }
 }

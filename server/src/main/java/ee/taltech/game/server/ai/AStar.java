@@ -73,39 +73,56 @@ public class AStar {
     }
 
     public List<Node> findPath(int srcX, int srcY, int dstX, int dstY) {
-        List<Node> path = new ArrayList<>();
-        PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingInt(AStar.Node::getFScore));
+        PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingInt(Node::getFScore));
         openSet.add(new Node(srcX, srcY));
         Set<Node> closedSet = new HashSet<>(); // processed nodes
-        while(!openSet.isEmpty()) {
-            AStar.Node current = openSet.poll(); // poll returns and removes the element at the front of the queue
-            if (current.x == dstX && current.y == dstY) { // if node is destination point
-                while (current != null) {
-                    path.add(current);
-                    current = current.parent; // goes up the tree to find path
-                }
-                return path;
+
+        while (!openSet.isEmpty()) {
+            Node current = openSet.poll();
+            if (current.x == dstX && current.y == dstY) {
+                return reconstructPath(current);
             }
             closedSet.add(current);
-            for (int[] neighbour: neighbours) {
-                int x = current.x + neighbour[0];
-                int y = current.y + neighbour[1];
-                if (x < 0 || x >= maxX || y < 0 || y >= maxY || grid[y][x] == 1) { // 1 is collision
-                    continue;
-                }
-                AStar.Node neighbourNode = new AStar.Node(x, y);
-                int newGScore = current.gScore + 1;
-                if (closedSet.contains(neighbourNode)) {
-                    continue;
-                }
-                if (!openSet.contains(neighbourNode) || newGScore < neighbourNode.gScore) {
-                    neighbourNode.parent = current;
-                    neighbourNode.gScore = newGScore;
-                    neighbourNode.updateHScore(dstX, dstY);
-                    openSet.add(neighbourNode);
-                }
+            updateNeighbours(current, dstX, dstY, openSet, closedSet);
+        }
+        return new ArrayList<>(); // Return empty path if none was found
+    }
+
+    private void updateNeighbours(Node current, int dstX, int dstY, PriorityQueue<Node> openSet, Set<Node> closedSet) {
+        for (int[] neighbour : neighbours) {
+            int x = current.x + neighbour[0];
+            int y = current.y + neighbour[1];
+            Node neighbourNode = new Node(x, y);
+            if (isOutOfBounds(x, y) || isCollision(x, y) || closedSet.contains(neighbourNode)) {
+                continue;
+            }
+            int newGScore = current.gScore + 1;
+            if (!openSet.contains(neighbourNode) || newGScore < neighbourNode.gScore) {
+                neighbourNode.parent = current;
+                neighbourNode.gScore = newGScore;
+                neighbourNode.updateHScore(dstX, dstY);
+                openSet.add(neighbourNode);
             }
         }
-        return null;
     }
+
+
+    private boolean isOutOfBounds(int x, int y) {
+        return x < 0 || x >= maxX || y < 0 || y >= maxY;
+    }
+
+    private boolean isCollision(int x, int y) {
+        return grid[y][x] == 1; // 1 is collision
+    }
+
+    private List<Node> reconstructPath(Node current) {
+        List<Node> path = new ArrayList<>();
+        while (current != null) {
+            path.add(current);
+            current = current.parent;
+        }
+        Collections.reverse(path); // Reversing to get the correct order
+        return path;
+    }
+
 }
