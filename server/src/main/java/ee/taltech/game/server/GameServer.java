@@ -81,7 +81,6 @@ public class GameServer {
                     ArrayList<OnLobbyJoin> lobbyPlayers = new ArrayList<>();
 
                     OnLobbyJoin joinedPeer = new OnLobbyJoin();
-                    // Kasutame connection.getID() asemel
                     joinedPeer.setId(connection.getID());
                     System.out.println("player join packet connection id:" + joinedPeer.getId());
                     joinedPeer.setName(joinedPlayer.getUserName());
@@ -96,7 +95,6 @@ public class GameServer {
                         }
                     }
                     OnLobbyList list = new OnLobbyList();
-                    // Kasutame connection.getID() asemel
                     list.setNetId(joinedPlayer.getId());
                     list.setPeers(lobbyPlayers);
 
