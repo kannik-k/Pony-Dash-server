@@ -58,12 +58,15 @@ public class GameServer {
             public void received (Connection connection, Object object) {
 
                 if (object instanceof OnStartGame packet) {
-                    System.out.println(packet);
                     Game game = new Game(gameId);
                     packet.setGameId(gameId);
                     for (PlayerJoinPacket peer : lobby.getPeers()) {
+                        // System.out.println(" in the loop ");
+                        // System.out.println("the players:" + lobby.getPeers());
                         peer.setGameId(gameId);
-                        server.sendToTCP(connection.getID(), packet);
+                        server.sendToTCP(peer.getId(), packet);
+                        // System.out.println(connection.getID());
+                        // System.out.println("peer id" + peer.getId());
                         // peer.sendUDP(packet);
                         game.getPlayers().add(peer);
                     }
@@ -78,29 +81,28 @@ public class GameServer {
                     ArrayList<OnLobbyJoin> lobbyPlayers = new ArrayList<>();
 
                     OnLobbyJoin joinedPeer = new OnLobbyJoin();
-                    joinedPeer.setId(joinedPlayer.getId());
+                    // Kasutame connection.getID() asemel
+                    joinedPeer.setId(connection.getID());
+                    System.out.println("player join packet connection id:" + joinedPeer.getId());
                     joinedPeer.setName(joinedPlayer.getUserName());
-                    System.out.println(lobby.getPeers());
                     for (PlayerJoinPacket peer : lobby.getPeers()) {
-                        System.out.println("in the loop");
                         if (peer.getGameId() == 0) {
                             server.sendToTCP(connection.getID(), joinedPeer);
-                            // peer.sendTCP(joinedPeer);
                             OnLobbyJoin join2 = new OnLobbyJoin();
-                            join2.setId(peer.getId());
+                            // Kasutame connection.getID() asemel
+                            join2.setId(connection.getID());
                             join2.setName(peer.getUserName());
                             lobbyPlayers.add(join2);
                         }
                     }
                     OnLobbyList list = new OnLobbyList();
+                    // Kasutame connection.getID() asemel
                     list.setNetId(joinedPlayer.getId());
                     list.setPeers(lobbyPlayers);
 
                     server.sendToTCP(connection.getID(), list);
-                    // joinedPlayer.sendTCP(list);
-
-                    lobby.addPeer(joinedPlayer);
-                    System.out.println(lobby.getPeers());
+                    joinedPeer.setId(connection.getID());
+                    lobby.addPeer(joinedPlayer, connection.getID());
                 }
                 if (object instanceof PacketPlayerConnect packet) {
                     for (Map.Entry<Integer, Player> set : players.entrySet()) {

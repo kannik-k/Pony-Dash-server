@@ -13,7 +13,8 @@ public class Lobby {
     public void clearPeers() {
         this.peers.clear();
     }
-    public void addPeer(PlayerJoinPacket peer) {
-        this.peers.add(peer);
+    public void addPeer(PlayerJoinPacket peer, int id) {
+        peer.setId(id);
+        peers.add(peer);
     }
 }
