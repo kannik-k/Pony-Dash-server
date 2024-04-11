@@ -61,13 +61,8 @@ public class GameServer {
                     Game game = new Game(gameId);
                     packet.setGameId(gameId);
                     for (PlayerJoinPacket peer : lobby.getPeers()) {
-                        // System.out.println(" in the loop ");
-                        // System.out.println("the players:" + lobby.getPeers());
                         peer.setGameId(gameId);
                         server.sendToTCP(peer.getId(), packet);
-                        // System.out.println(connection.getID());
-                        // System.out.println("peer id" + peer.getId());
-                        // peer.sendUDP(packet);
                         game.getPlayers().add(peer);
                     }
                     lobby.clearPeers();
@@ -75,20 +70,18 @@ public class GameServer {
                     gameId++;
                 }
 
-                if (object instanceof PlayerJoinPacket joinedPlayer) {
+                if (object instanceof PlayerJoinPacket joinedPlayer && (joinedPlayer.getId() == -1)) {
                     joinedPlayer.setUserName(joinedPlayer.getUserName());
 
                     ArrayList<OnLobbyJoin> lobbyPlayers = new ArrayList<>();
 
                     OnLobbyJoin joinedPeer = new OnLobbyJoin();
                     joinedPeer.setId(connection.getID());
-                    System.out.println("player join packet connection id:" + joinedPeer.getId());
                     joinedPeer.setName(joinedPlayer.getUserName());
                     for (PlayerJoinPacket peer : lobby.getPeers()) {
                         if (peer.getGameId() == 0) {
                             server.sendToTCP(connection.getID(), joinedPeer);
                             OnLobbyJoin join2 = new OnLobbyJoin();
-                            // Kasutame connection.getID() asemel
                             join2.setId(connection.getID());
                             join2.setName(peer.getUserName());
                             lobbyPlayers.add(join2);
@@ -102,6 +95,7 @@ public class GameServer {
                     joinedPeer.setId(connection.getID());
                     lobby.addPeer(joinedPlayer, connection.getID());
                 }
+
                 if (object instanceof PacketPlayerConnect packet) {
                     for (Map.Entry<Integer, Player> set : players.entrySet()) {
                         PacketPlayerConnect packetPlayerConnect = new PacketPlayerConnect();
