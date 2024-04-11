@@ -35,6 +35,7 @@ public class GameServer {
         } catch (IOException e) {
             throw new ConnectionException(e.getMessage());
         }
+        GameWorld gameWorld = new GameWorld(1); // GameId tuleb siin hiljem ära muuta, hiljem tuleb kasutusele
 
         server.addListener(new Listener() {
             /**
