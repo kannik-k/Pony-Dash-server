@@ -70,7 +70,7 @@ public class GameServer {
                     gameId++;
                 }
 
-                if (object instanceof PlayerJoinPacket joinedPlayer && (joinedPlayer.getId() == -1)) {
+                if (object instanceof PlayerJoinPacket joinedPlayer) {
                     joinedPlayer.setUserName(joinedPlayer.getUserName());
 
                     ArrayList<OnLobbyJoin> lobbyPlayers = new ArrayList<>();
