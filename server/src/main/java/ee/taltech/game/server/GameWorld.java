@@ -27,6 +27,10 @@ public class GameWorld {
         this.readTilemapData();
     }
 
+    public List<NPC> getAiBots() {
+        return aiBots;
+    }
+
     public int[][] getCollisions() {
         return collisions;
     }
@@ -110,10 +114,15 @@ public class GameWorld {
 
     /**
      * Generate all bots.
+     * <p>
+     *     Bots are put to their initial positions (coordinates are in pixels).
+     * </p>
      */
     private void generateAiBots() {
-        this.aiBots.add(new NPC(0,0)); // siin saab sättida hiljem algkoordinaadid paika
-        this.aiBots.add(new NPC(1, 0));
+        this.aiBots.add(new NPC((22 * 16),(26 * 16)));
+        this.aiBots.add(new NPC((64 * 16), (26 * 16)));
+        this.aiBots.add(new NPC((93 * 16),(26 * 16)));
+        this.aiBots.add(new NPC((64 * 16), (56 * 16)));
     }
 
 }

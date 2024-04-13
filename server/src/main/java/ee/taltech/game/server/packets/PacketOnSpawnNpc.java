@@ -1,11 +1,19 @@
 package ee.taltech.game.server.packets;
 
-public class PacketSendCoordinates extends Packet{
-    private float x;
+public class PacketOnSpawnNpc {
+    private int id;
+    private float x; // Box2D world coordinates
     private float y;
-    private int tiledX;
+    private int tiledX; // Tiled coordinates in pixels
     private int tiledY;
-    private int playerID;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public float getX() {
         return x;
@@ -21,14 +29,6 @@ public class PacketSendCoordinates extends Packet{
 
     public void setY(float y) {
         this.y = y;
-    }
-
-    public int getPlayerID() {
-        return playerID;
-    }
-
-    public void setPlayerID(int playerID) {
-        this.playerID = playerID;
     }
 
     public int getTiledX() {
