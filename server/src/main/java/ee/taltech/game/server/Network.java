@@ -34,5 +34,6 @@ public class Network {
         kryo.register(Game.class);
         kryo.register(OnLobbyJoin.class);
         kryo.register(OnLobbyList.class);
+        kryo.register(PacketGameId.class);
     }
 }

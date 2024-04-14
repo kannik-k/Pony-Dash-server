@@ -3,6 +3,7 @@ package ee.taltech.game.server.packets;
 public class PacketPlayerConnect extends Packet {
     private String playerName;
     private int playerID;
+    private int gameID;
 
     public String getPlayerName() {
         return playerName;
@@ -18,5 +19,13 @@ public class PacketPlayerConnect extends Packet {
 
     public void setPlayerID(int playerID) {
         this.playerID = playerID;
+    }
+
+    public int getGameID() {
+        return gameID;
+    }
+
+    public void setGameID(int gameID) {
+        this.gameID = gameID;
     }
 }

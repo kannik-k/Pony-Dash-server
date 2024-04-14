@@ -4,6 +4,7 @@ public class Player {
     private String playerName;
     private float x = 0;
     private float y = 0;
+    private int gameID;
 
     public Player() {}
 
@@ -33,5 +34,13 @@ public class Player {
 
     public void setY(float y) {
         this.y = y;
+    }
+
+    public int getGameID() {
+        return gameID;
+    }
+
+    public void setGameID(int gameID) {
+        this.gameID = gameID;
     }
 }
