@@ -3,6 +3,7 @@ package ee.taltech.game.server;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
+import ee.taltech.game.server.ai.NPC;
 import ee.taltech.game.server.exceptions.ConnectionException;
 import ee.taltech.game.server.lobby.Lobby;
 import ee.taltech.game.server.packets.*;
@@ -38,17 +39,18 @@ public class GameServer {
             throw new ConnectionException(e.getMessage());
         }
         GameWorld gameWorld = new GameWorld(1); // GameId tuleb siin hiljem ära muuta, hiljem tuleb kasutusele
-
         server.addListener(new Listener() {
             /**
              * Create listener for incoming packets.
              * <p>
-             *     There are two kinds of packets the server receives.
-             *     1. The packet PacketPlayerConnect is received when a player joins the game. All of the connected
-             *     players existence information is sent to the new connected player. The new connected player is
+             *     There are four kinds of packets the server receives.
+             *     1. OnStartGame
+             *     2. PlayerJoinPacket
+             *     3. The packet PacketPlayerConnect is received when a player joins the game. All of the connected
+             *     players and npc-s existence information is sent to the new connected player. The new connected player is
              *     created, added to the players map and its existence information is sent to all other connected
              *     players.
-             *     2. The packet PacketSendCoordinates is received constantly with updated players' location. The
+             *     4. The packet PacketSendCoordinates is received constantly with updated players' location. The
              *     coordinates of a player are then sent to all other players that are connected.
              * </p>
              * @param connection
@@ -103,16 +105,26 @@ public class GameServer {
                         packetPlayerConnect.setPlayerName(set.getValue().getPlayerName());
                         server.sendToTCP(connection.getID(), packetPlayerConnect);
                     }
+                    for (NPC npc: gameWorld.getAiBots()) {
+                        PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
+                        packetOnSpawnNpc.setId(npc.getNetId());
+                        packetOnSpawnNpc.setTiledX(npc.getTiledX());
+                        packetOnSpawnNpc.setTiledY(npc.getTiledY());
+                        server.sendToTCP(connection.getID(), packetOnSpawnNpc);
+                    }
                     Player newPlayer = new Player(packet.getPlayerName());
                     players.put(connection.getID(), newPlayer); // Add player ID and player name to map
                     ((PacketPlayerConnect) object).setPlayerID(connection.getID());
                     server.sendToAllUDP(object);
                 }
+
                 if (object instanceof PacketSendCoordinates packet) {
                     int playerID = connection.getID();
                     Player peer = players.get(playerID);
                     peer.setX(packet.getX());
                     peer.setY(packet.getY());
+                    peer.setTiledX(packet.getTiledX());
+                    peer.setTiledY(packet.getTiledY());
                     server.sendToAllUDP(object);
                 }
             }
