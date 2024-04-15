@@ -138,6 +138,7 @@ public class GameServer {
                     }
                 }
 
+
                 if (object instanceof PacketPlayerConnect packet) {
                     System.out.println("i recived PacketPlayerConnect with game id: " + packet.getGameID());
                     for (Map.Entry<Integer, Player> set : players.entrySet()) {
@@ -145,8 +146,11 @@ public class GameServer {
                         packetPlayerConnect.setPlayerID(set.getKey());
                         packetPlayerConnect.setPlayerName(set.getValue().getPlayerName());
                         server.sendToTCP(connection.getID(), packetPlayerConnect);
+                        for (PlayerJoinPacket player : currentGame.getPlayers()) {
+                           server.sendToTCP(player.getId(), packetPlayerConnect);
+                        }
                     }
-                    for (NPC npc: gameWorld.getAiBots()) {
+                    for (NPC npc : gameWorld.getAiBots()) {
                         PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
                         packetOnSpawnNpc.setId(npc.getNetId());
                         packetOnSpawnNpc.setTiledX(npc.getTiledX());
@@ -161,7 +165,8 @@ public class GameServer {
 
                 if (object instanceof PacketSendCoordinates packet) {
                     System.out.println("i recived PacketSendCoordinates with game id: " + packet.getGameID());
-                    int playerID = connection.getID();
+                    System.out.println(players);
+                    int playerID = packet.getPlayerID();
                     Player peer = players.get(playerID);
 
                     peer.setX(packet.getX());
@@ -169,7 +174,11 @@ public class GameServer {
                     peer.setTiledX(packet.getTiledX());
                     peer.setTiledY(packet.getTiledY());
                     server.sendToAllUDP(object);
+                    for (PlayerJoinPacket player : currentGame.getPlayers()) {
+                        server.sendToTCP(player.getId(), object);
+                    }
                 }
+
             }
 
             /**
