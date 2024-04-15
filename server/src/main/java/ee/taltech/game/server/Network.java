@@ -23,7 +23,6 @@ public class Network {
         kryo.register(Packet.class);
         kryo.register(PacketPlayerConnect.class);
         kryo.register(PacketSendCoordinates.class);
-        kryo.register(PacketLobby.class);
         kryo.register(ArrayList.class);
         kryo.register(List.class);
         kryo.register(ee.taltech.game.server.Player.class);
@@ -31,7 +30,6 @@ public class Network {
 
         kryo.register(PlayerJoinPacket.class);
         kryo.register(OnStartGame.class);
-        kryo.register(Game.class);
         kryo.register(OnLobbyJoin.class);
         kryo.register(OnLobbyList.class);
         kryo.register(PacketGameId.class);
