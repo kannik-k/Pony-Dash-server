@@ -6,6 +6,7 @@ public class PacketSendCoordinates extends Packet{
     private int tiledX;
     private int tiledY;
     private int playerID;
+    private int gameID;
 
     public float getX() {
         return x;
@@ -45,5 +46,13 @@ public class PacketSendCoordinates extends Packet{
 
     public void setTiledY(int tiledY) {
         this.tiledY = tiledY;
+    }
+
+    public int getGameID() {
+        return gameID;
+    }
+
+    public void setGameID(int gameID) {
+        this.gameID = gameID;
     }
 }

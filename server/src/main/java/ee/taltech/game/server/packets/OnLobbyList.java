@@ -4,7 +4,6 @@ import java.util.List;
 
 public class OnLobbyList {
     private int netId;
-    private boolean isHost;
     private List<OnLobbyJoin> peers;
 
     public int getNetId() {
@@ -13,14 +12,6 @@ public class OnLobbyList {
 
     public void setNetId(int netId) {
         this.netId = netId;
-    }
-
-    public boolean isHost() {
-        return isHost;
-    }
-
-    public void setHost(boolean host) {
-        isHost = host;
     }
 
     public List<OnLobbyJoin> getPeers() {

@@ -4,6 +4,7 @@ public class Player {
     private String playerName;
     private float x = 0; // Box2D world coordinates
     private float y = 0;
+    private int gameID;
     private int tiledX = Math.round(x * 100); // PPM = 100, this is in pixels
     private int tiledY = Math.round(y * 100); // In pixels
 
@@ -35,6 +36,14 @@ public class Player {
 
     public void setY(float y) {
         this.y = y;
+    }
+
+    public int getGameID() {
+        return gameID;
+    }
+
+    public void setGameID(int gameID) {
+        this.gameID = gameID;
     }
     public int getTiledX() {
         return tiledX;

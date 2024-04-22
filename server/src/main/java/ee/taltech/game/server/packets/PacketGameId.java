@@ -1,6 +1,6 @@
 package ee.taltech.game.server.packets;
 
-public class OnStartGame {
+public class PacketGameId {
     private int gameId;
 
     public int getGameId() {
