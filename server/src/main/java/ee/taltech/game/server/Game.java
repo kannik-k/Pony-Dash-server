@@ -29,7 +29,7 @@ public class Game {
     }
 
     public void setPlayers(Map<Integer, Player> players) {
-        this.players = players;
+        this.players = new  HashMap<Integer, Player>(players);
     }
 
     public Map<Integer, Player> getPlayers() {

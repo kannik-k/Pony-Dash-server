@@ -26,7 +26,7 @@ public class GameServer {
     private Server server;
     private Map<Integer, Player> players = new HashMap<>();
     private int gameId = 1;
-    private final List<Game> games = new ArrayList<>();
+    private List<Game> games = new ArrayList<>();
     Lobby lobby = new Lobby();
 
     /**
@@ -79,6 +79,20 @@ public class GameServer {
                         Game game = new Game(gameId);
                         packet.setGameId(gameId);
                         for (PlayerJoinPacket peer : lobby.getPeers()) {
+                            for (Map.Entry<Integer, Player> set : players.entrySet()) {
+                                PacketPlayerConnect packetPlayerConnect = new PacketPlayerConnect();
+                                packetPlayerConnect.setPlayerID(set.getKey());
+                                packetPlayerConnect.setPlayerName(set.getValue().getPlayerName());
+                                server.sendToTCP(peer.getId(), packetPlayerConnect);
+                            }
+                            for (NPC npc : gameWorld.getAiBots()) {
+                                PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
+                                packetOnSpawnNpc.setId(npc.getNetId());
+                                packetOnSpawnNpc.setTiledX(npc.getTiledX());
+                                packetOnSpawnNpc.setTiledY(npc.getTiledY());
+                                server.sendToTCP(peer.getId(), packetOnSpawnNpc);
+                            }
+
                             peer.setGameId(gameId);
                             server.sendToTCP(peer.getId(), packet);
                             game.getPlayersList().add(peer);
@@ -158,26 +172,6 @@ public class GameServer {
                 if (currentGame != null) {
                     System.out.println("Current game:" + currentGame);
                     System.out.println("Current game players:" + currentGame.getPlayers());
-                    if (object instanceof PacketPlayerConnect packet) {
-                        System.out.println("i recived PacketPlayerConnect with game id: " + packet.getGameID());
-                        for (Map.Entry<Integer, Player> set : players.entrySet()) {
-                            PacketPlayerConnect packetPlayerConnect = new PacketPlayerConnect();
-                            packetPlayerConnect.setPlayerID(set.getKey());
-                            packetPlayerConnect.setPlayerName(set.getValue().getPlayerName());
-                            server.sendToTCP(connection.getID(), packetPlayerConnect);
-                        }
-                        for (NPC npc : gameWorld.getAiBots()) {
-                            PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
-                            packetOnSpawnNpc.setId(npc.getNetId());
-                            packetOnSpawnNpc.setTiledX(npc.getTiledX());
-                            packetOnSpawnNpc.setTiledY(npc.getTiledY());
-                            server.sendToTCP(connection.getID(), packetOnSpawnNpc);
-                        }
-                        Player newPlayer = new Player(packet.getPlayerName());
-                        players.put(connection.getID(), newPlayer); // Add player ID and player name to map
-                        ((PacketPlayerConnect) object).setPlayerID(connection.getID());
-                        server.sendToAllUDP(object);
-                    }
 
                     if (object instanceof PacketSendCoordinates packet) {
                         System.out.println("i recived PacketSendCoordinates with game id: " + packet.getGameID());
