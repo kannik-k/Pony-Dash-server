@@ -6,14 +6,7 @@ import com.esotericsoftware.kryonet.Server;
 import ee.taltech.game.server.ai.NPC;
 import ee.taltech.game.server.exceptions.ConnectionException;
 import ee.taltech.game.server.lobby.Lobby;
-import ee.taltech.game.server.packets.OnLobbyJoin;
-import ee.taltech.game.server.packets.OnLobbyList;
-import ee.taltech.game.server.packets.OnStartGame;
-import ee.taltech.game.server.packets.PacketGameId;
-import ee.taltech.game.server.packets.PacketOnSpawnNpc;
-import ee.taltech.game.server.packets.PacketPlayerConnect;
-import ee.taltech.game.server.packets.PacketSendCoordinates;
-import ee.taltech.game.server.packets.PlayerJoinPacket;
+import ee.taltech.game.server.packets.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +18,7 @@ public class GameServer {
 
     private Server server;
     private Map<Integer, Player> players = new HashMap<>();
+    private Map<Integer, Player> singlePlayers = new HashMap<>();
     private int gameId = 1;
     private List<Game> games = new ArrayList<>();
     Lobby lobby = new Lobby();
@@ -71,9 +65,40 @@ public class GameServer {
                     gameID = ((OnStartGame) object).getGameId();
                 } else if (object instanceof PlayerJoinPacket) {
                     gameID = ((PlayerJoinPacket) object).getGameId();
+                } else if (object instanceof PacketSinglePlayer) {
+                    gameID = ((PacketSinglePlayer) object).getGameId();
                 }
 
                 if (gameID == 0) {
+
+                    if (object instanceof PacketSinglePlayer singlePlayer) {
+                        Game game = new Game(gameId);
+                        singlePlayer.setGameId(gameId);
+                        singlePlayer.setId(connection.getID());
+
+                        // Great a new player
+                        Player newPlayer = new Player(singlePlayer.getUserName());
+                        singlePlayers.put(connection.getID(), newPlayer); // Add player ID and player name to map
+
+                        PacketPlayerConnect packetPlayerConnect = new PacketPlayerConnect();
+                        packetPlayerConnect.setPlayerID(singlePlayer.getId());
+                        packetPlayerConnect.setPlayerName(singlePlayer.getUserName());
+                        server.sendToTCP(singlePlayer.getId(), packetPlayerConnect);
+
+                        for (NPC npc : gameWorld.getAiBots()) {
+                            PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
+                            packetOnSpawnNpc.setId(npc.getNetId());
+                            packetOnSpawnNpc.setTiledX(npc.getTiledX());
+                            packetOnSpawnNpc.setTiledY(npc.getTiledY());
+                            server.sendToTCP(singlePlayer.getId(), packetOnSpawnNpc);
+                        }
+
+                        game.setPlayers(singlePlayers);
+
+                        games.add(game);
+                        gameId++;
+                        singlePlayers.clear();
+                    }
 
                     if (object instanceof OnStartGame packet) {
                         Game game = new Game(gameId);
@@ -98,12 +123,10 @@ public class GameServer {
                             game.getPlayersList().add(peer);
                         }
                         for (PlayerJoinPacket player : lobby.getPeers()) {
-                            System.out.println("Player game id:" + player.getGameId());
                             game.getPlayersList().add(player);
                         }
 
                         game.setPlayers(players);
-                        System.out.println("Game players: " + game.getPlayers());
                         lobby.clearPeers();
                         games.add(game);
                         gameId++;
@@ -138,17 +161,12 @@ public class GameServer {
                         // Send game id to player
                         PacketGameId packetGameId = new PacketGameId();
                         packetGameId.setGameId(gameId);
-                        System.out.println("Game id for sending: " + packetGameId.getGameId());
                         server.sendToTCP(connection.getID(), packetGameId);
 
                         server.sendToTCP(connection.getID(), list);
                         joinedPeer.setId(connection.getID());
                         lobby.addPeer(joinedPlayer, connection.getID());
                     }
-                }
-
-                for (Game game : games) {
-                    System.out.println("Game " + game.getGameId() + " has players " + game.getPlayers());
                 }
 
                 int receivedGameId = -1;
@@ -161,21 +179,14 @@ public class GameServer {
 
                 Game currentGame = null;
                 for (Game game : games) {
-                    System.out.println("in the loop " + game.getGameId());
                     if (game.getGameId() == receivedGameId) {
                         currentGame = game;
-                        System.out.println("I got the current game:" + currentGame);
-                        System.out.println("Current game players: " + currentGame.getPlayers());
                         break;
                     }
                 }
                 if (currentGame != null) {
-                    System.out.println("Current game:" + currentGame);
-                    System.out.println("Current game players:" + currentGame.getPlayers());
 
                     if (object instanceof PacketSendCoordinates packet) {
-                        System.out.println("i recived PacketSendCoordinates with game id: " + packet.getGameID());
-                        System.out.println(currentGame.getPlayers());
                         int playerID = packet.getPlayerID();
                         Player peer = currentGame.getPlayers().get(playerID);
 
