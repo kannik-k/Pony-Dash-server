@@ -1,4 +1,6 @@
-package ee.taltech.game.server.packets;
+package ee.taltech.game.server;
+
+import ee.taltech.game.server.packets.PlayerJoinPacket;
 
 import java.util.ArrayList;
 import java.util.List;
