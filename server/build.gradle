@@ -19,6 +19,9 @@ compileJava   {
     targetCompatibility = '21'
 }
 
+sourceSets.main.java.srcDirs = ["src/main/java"]
+sourceSets.main.resources.srcDirs = ["assets"]
+
 dependencies {
     implementation group: 'com.esotericsoftware', name: 'kryonet', version: '2.22.0-RC1'
     testImplementation platform('org.junit:junit-bom:5.9.1')

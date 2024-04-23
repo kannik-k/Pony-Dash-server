@@ -40,7 +40,7 @@ public class GameWorld {
      */
     private void readTilemapData() {
         try {
-            File file = new File("Server/data/Pony_dash_for_spike_salvation_map.tmx");
+            File file = new File("server/assets/Pony_dash_for_spike_salvation_map.tmx");
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true); // For security
             dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
