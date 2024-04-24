@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class GameServer {
 
@@ -21,6 +22,7 @@ public class GameServer {
     private Map<Integer, Player> singlePlayers = new HashMap<>();
     private int gameId = 1;
     private List<Game> games = new ArrayList<>();
+    private final ReentrantLock lock = new ReentrantLock();
     Lobby lobby = new Lobby();
 
     /**
@@ -39,7 +41,7 @@ public class GameServer {
         } catch (IOException e) {
             throw new ConnectionException(e.getMessage());
         }
-        GameWorld gameWorld = new GameWorld(1); // GameId tuleb siin hiljem ära muuta, hiljem tuleb kasutusele
+        GameServer gameServer = this; // For creating GameWorld objects
 
         server.addListener(new Listener() {
             /**
@@ -73,11 +75,13 @@ public class GameServer {
 
                     if (object instanceof PacketSinglePlayer singlePlayer) {
                         Game game = new Game(gameId);
+                        GameWorld gameWorld = new GameWorld(gameId, gameServer);
                         singlePlayer.setGameId(gameId);
                         singlePlayer.setId(connection.getID());
 
                         // Great a new player
                         Player newPlayer = new Player(singlePlayer.getUserName());
+                        newPlayer.setGameID(gameId); // Set game id for player
                         singlePlayers.put(connection.getID(), newPlayer); // Add player ID and player name to map
 
                         PacketPlayerConnect packetPlayerConnect = new PacketPlayerConnect();
@@ -102,9 +106,11 @@ public class GameServer {
 
                     if (object instanceof OnStartGame packet) {
                         Game game = new Game(gameId);
+                        GameWorld gameWorld = new GameWorld(gameId, gameServer);
                         packet.setGameId(gameId);
                         for (PlayerJoinPacket peer : lobby.getPeers()) {
                             for (Map.Entry<Integer, Player> set : players.entrySet()) {
+                                set.getValue().setGameID(gameId); // Set game id for player
                                 PacketPlayerConnect packetPlayerConnect = new PacketPlayerConnect();
                                 packetPlayerConnect.setPlayerID(set.getKey());
                                 packetPlayerConnect.setPlayerName(set.getValue().getPlayerName());
@@ -209,6 +215,28 @@ public class GameServer {
                 players.remove(connection.getID());
             }
         });
+    }
+
+    /**
+     * Send info about AI characters movement to the players in the corresponding game.
+     * @param movement PacketOnNpcMovement object
+     * @param gameId id of the game in which the bot moved
+     */
+    public void sendInfoAboutBotMoving(PacketOnNpcMove movement, int gameId) {
+        lock.lock();
+        try {
+            for (Game game: this.games) {
+                if (game.getGameId() == gameId) {
+                    for (Map.Entry<Integer, Player> set : game.getPlayers().entrySet()) {
+                        if (set.getValue() != null && set.getValue().getGameID() == gameId) {
+                            server.sendToTCP(set.getKey(), movement);
+                        }
+                    }
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     public static void main(String[] args) {

@@ -36,5 +36,6 @@ public class Network {
         kryo.register(PacketSinglePlayer.class);
 
         kryo.register(PacketOnSpawnNpc.class);
+        kryo.register(PacketOnNpcMove.class);
     }
 }

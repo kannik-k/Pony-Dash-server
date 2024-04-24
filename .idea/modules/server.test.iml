@@ -4,6 +4,7 @@
     <output-test url="file://$MODULE_DIR$/../../server/build/classes/java/test" />
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../server/src/test" />
+    <content url="file://$MODULE_DIR$/../../server/src/test" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="server.main" />
@@ -22,7 +23,7 @@
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.junit.platform:junit-platform-engine:1.9.1" level="project" />
   </component>
   <component name="SonarLintModuleSettings">
-    <option name="uniqueId" value="80632ff2-b045-4765-9ae7-e6dab875eef6" />
+    <option name="uniqueId" value="ba01bc5c-8d04-40e7-94b1-9c4af1cf04c1" />
   </component>
   <component name="TestModuleProperties" production-module="server.main" />
 </module>
