@@ -55,6 +55,7 @@ public class NPC {
                     if (collisions[yCur][xCur] == 0) {
                         foundGoodLocation = true;
                         path = aStar.findPath(tiledX / 16, tiledY / 16, xCur, yCur);
+                        System.out.println(path);
                     }
                 }
             } else {
@@ -64,13 +65,14 @@ public class NPC {
                 path.removeFirst();
                 tiledX = node.x * 16;
                 tiledY = node.y * 16;
+                System.out.println("x :" + node.x + "y: " + node.y);
                 movement.setTiledX(tiledX);
                 movement.setTiledY(tiledY);
                 gameServer.sendInfoAboutBotMoving(movement, gameId);
             }
         };
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(botRunnable, 2000, 300, TimeUnit.MILLISECONDS); // Runs botRunnable every 300 milliseconds
+        executor.scheduleAtFixedRate(botRunnable, 2000, 150, TimeUnit.MILLISECONDS); // Runs botRunnable every 300 milliseconds
     }
 
     public int getNetId() {

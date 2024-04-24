@@ -29,6 +29,12 @@ public class AStar {
             this.parent = null;
         }
 
+        @Override
+        public String toString() {
+            return x + " " + y;
+        }
+
+
         /**
          * Set hScore for this node.
          * @param dstX destination x coordinate
