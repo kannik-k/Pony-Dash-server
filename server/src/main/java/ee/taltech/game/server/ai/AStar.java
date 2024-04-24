@@ -133,7 +133,7 @@ public class AStar {
     }
 
     private boolean isCollision(int x, int y) {
-        return grid[y][x] == 1; // 1 is collision
+        return grid[79 - y][x] == 1; // 1 is collision and y is subtracted from 79 (80 is map height) because the map array is the other way around
     }
 
     private ArrayList<Node> reconstructPath(Node current) {

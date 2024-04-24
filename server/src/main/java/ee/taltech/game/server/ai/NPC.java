@@ -50,9 +50,11 @@ public class NPC {
                 Random rand = new Random();
                 boolean foundGoodLocation = false;
                 while (!foundGoodLocation) {
-                    int xCur = rand.nextInt(2950 + 1);
-                    int yCur = rand.nextInt(80 + 1);
-                    if (collisions[yCur][xCur] == 0) {
+                    int xCur = rand.nextInt(100);
+                    int yCur = rand.nextInt(30);
+                    xCur = 64;
+                    yCur = 56;
+                    if (collisions[79 - yCur][xCur] == 0) { // y is subtracted from 79 (80 is map height) because the map array is the other way around
                         foundGoodLocation = true;
                         path = aStar.findPath(tiledX / 16, tiledY / 16, xCur, yCur);
                         System.out.println(path);
@@ -65,7 +67,7 @@ public class NPC {
                 path.removeFirst();
                 tiledX = node.x * 16;
                 tiledY = node.y * 16;
-                System.out.println("x :" + node.x + "y: " + node.y);
+                System.out.println("x: " + node.x + " y: " + node.y);
                 movement.setTiledX(tiledX);
                 movement.setTiledY(tiledY);
                 gameServer.sendInfoAboutBotMoving(movement, gameId);
