@@ -48,14 +48,14 @@ public class GameServer {
              * Create listener for incoming packets.
              * <p>
              *     There are four kinds of packets the server receives.
-             *     1. OnStartGame
-             *     2. PlayerJoinPacket
-             *     3. The packet PacketPlayerConnect is received when a player joins the game. All of the connected
+             *     1. The PacketSinglePlayer and OnStartGame packets are received when players connect the game. All of the connected
              *     players and npc-s existence information is sent to the new connected player. The new connected player is
              *     created, added to the players map and its existence information is sent to all other connected
              *     players.
-             *     4. The packet PacketSendCoordinates is received constantly with updated players' location. The
+             *     2. PlayerJoinPacket
+             *     3. The packet PacketSendCoordinates is received constantly with updated players' location. The
              *     coordinates of a player are then sent to all other players that are connected.
+             *     4. PacketGameOver
              * </p>
              * @param connection
              * @param object
@@ -82,6 +82,7 @@ public class GameServer {
                         // Great a new player
                         Player newPlayer = new Player(singlePlayer.getUserName());
                         newPlayer.setGameID(gameId); // Set game id for player
+                        newPlayer.setId(connection.getID()); // Set connection id for player
                         singlePlayers.put(connection.getID(), newPlayer); // Add player ID and player name to map
 
                         PacketPlayerConnect packetPlayerConnect = new PacketPlayerConnect();
@@ -98,6 +99,7 @@ public class GameServer {
                         }
 
                         game.setPlayers(singlePlayers);
+                        game.setGameWorld(gameWorld);
 
                         games.add(game);
                         gameId++;
@@ -111,6 +113,7 @@ public class GameServer {
                         for (PlayerJoinPacket peer : lobby.getPeers()) {
                             for (Map.Entry<Integer, Player> set : players.entrySet()) {
                                 set.getValue().setGameID(gameId); // Set game id for player
+                                set.getValue().setId(set.getKey()); // Set player id
                                 PacketPlayerConnect packetPlayerConnect = new PacketPlayerConnect();
                                 packetPlayerConnect.setPlayerID(set.getKey());
                                 packetPlayerConnect.setPlayerName(set.getValue().getPlayerName());
@@ -133,6 +136,7 @@ public class GameServer {
                         }
 
                         game.setPlayers(players);
+                        game.setGameWorld(gameWorld);
                         lobby.clearPeers();
                         games.add(game);
                         gameId++;
@@ -207,7 +211,6 @@ public class GameServer {
 
                     if (object instanceof PacketGameOver packet) {
                         for (Map.Entry<Integer, Player> set : currentGame.getPlayers().entrySet()) {
-                            System.out.println(packet.getPlayerName());
                             server.sendToTCP(set.getKey(), packet);
                             games.remove(currentGame);
                         }
@@ -216,13 +219,23 @@ public class GameServer {
             }
 
             /**
-             * Remove disconnected player from players map.
+             * Remove disconnected player. Remove game and bots if nobody is in that game anymore.
              *
              * @param connection (TCP or UDP)
              */
             @Override
             public void disconnected(Connection connection) {
                 players.remove(connection.getID());
+                for (Game game: games) {
+                    if (game.getPlayers().containsKey(connection.getID())) {
+                        game.getPlayers().remove(connection.getID());
+                        if (game.getPlayers().isEmpty()) {
+                            game.getGameWorld().deleteBots();
+                            games.remove(game);
+                            break;
+                        }
+                    }
+                }
             }
         });
     }
