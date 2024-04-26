@@ -207,6 +207,7 @@ public class GameServer {
 
                     if (object instanceof PacketGameOver packet) {
                         for (Map.Entry<Integer, Player> set : currentGame.getPlayers().entrySet()) {
+                            System.out.println(packet.getPlayerName());
                             server.sendToTCP(set.getKey(), packet);
                             games.remove(currentGame);
                         }
