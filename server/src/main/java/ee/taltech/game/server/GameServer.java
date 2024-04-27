@@ -52,10 +52,13 @@ public class GameServer {
              *     players and npc-s existence information is sent to the new connected player. The new connected player is
              *     created, added to the players map and its existence information is sent to all other connected
              *     players.
-             *     2. PlayerJoinPacket
+             *     2. PlayerJoinPacket is sent to server when player joins with the lobby. If there are already players
+             *     in the lobby, OnLobbyJoin and OnLobbyList will notify other players in the lobby and the new player
+             *     will receive a list of players already in the lobby. New player will receive a gameId.
              *     3. The packet PacketSendCoordinates is received constantly with updated players' location. The
              *     coordinates of a player are then sent to all other players that are connected.
-             *     4. PacketGameOver
+             *     4. PacketGameOver contains winners id and name. When the packet reaches server, it will sent it to
+             *     every other player in the game.
              * </p>
              * @param connection
              * @param object
