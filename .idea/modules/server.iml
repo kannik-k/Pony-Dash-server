@@ -6,10 +6,11 @@
       <excludeFolder url="file://$MODULE_DIR$/../../server/.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/../../server/build" />
     </content>
+    <content url="file://$MODULE_DIR$/../../server" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="SonarLintModuleSettings">
-    <option name="uniqueId" value="cedad506-3c16-4cf3-ae38-da1fa369edf6" />
+    <option name="uniqueId" value="e0980e90-40b0-4031-b51f-4947a43fc28c" />
   </component>
 </module>

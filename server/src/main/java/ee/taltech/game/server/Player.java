@@ -2,6 +2,7 @@ package ee.taltech.game.server;
 
 public class Player {
     private String playerName;
+    private int id;
     private float x = 0; // Box2D world coordinates
     private float y = 0;
     private int gameID;
@@ -59,5 +60,13 @@ public class Player {
 
     public void setTiledY(int tiledY) {
         this.tiledY = tiledY;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

@@ -9,6 +9,9 @@
     <content url="file://$MODULE_DIR$/../../server/src/main">
       <sourceFolder url="file://$MODULE_DIR$/../../server/src/main/java" isTestSource="false" />
     </content>
+    <content url="file://$MODULE_DIR$/../../server/src/main">
+      <sourceFolder url="file://$MODULE_DIR$/../../server/src/main/java" isTestSource="false" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Gradle: com.esotericsoftware:kryonet:2.22.0-RC1" level="project" />
@@ -18,6 +21,6 @@
     <orderEntry type="library" name="Gradle: org.objenesis:objenesis:2.1" level="project" />
   </component>
   <component name="SonarLintModuleSettings">
-    <option name="uniqueId" value="3ae2d990-25cf-4370-83bb-4e640c551135" />
+    <option name="uniqueId" value="24b8ec44-d330-4d80-b9e4-d78250976686" />
   </component>
 </module>

@@ -29,6 +29,12 @@ public class AStar {
             this.parent = null;
         }
 
+        @Override
+        public String toString() {
+            return x + " " + y;
+        }
+
+
         /**
          * Set hScore for this node.
          * @param dstX destination x coordinate
@@ -80,7 +86,7 @@ public class AStar {
      * @param dstY destination y
      * @return List of path to destination
      */
-    public List<Node> findPath(int srcX, int srcY, int dstX, int dstY) {
+    public ArrayList<Node> findPath(int srcX, int srcY, int dstX, int dstY) {
         PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingInt(Node::getFScore));
         openSet.add(new Node(srcX, srcY));
         Set<Node> closedSet = new HashSet<>(); // processed nodes
@@ -127,11 +133,11 @@ public class AStar {
     }
 
     private boolean isCollision(int x, int y) {
-        return grid[y][x] == 1; // 1 is collision
+        return grid[79 - y][x] == 1; // 1 is collision and y is subtracted from 79 (80 is map height) because the map array is the other way around
     }
 
-    private List<Node> reconstructPath(Node current) {
-        List<Node> path = new ArrayList<>();
+    private ArrayList<Node> reconstructPath(Node current) {
+        ArrayList<Node> path = new ArrayList<>();
         while (current != null) {
             path.add(current);
             current = current.parent;
@@ -139,5 +145,4 @@ public class AStar {
         Collections.reverse(path); // Reversing to get the correct order
         return path;
     }
-
 }

@@ -12,6 +12,8 @@ public class Game {
     // game ID
     private final int gameId;
 
+    private GameWorld gameWorld;
+
     // List of players currently in the game
     private final List<PlayerJoinPacket> playersList = new ArrayList<>();
     private Map<Integer, Player> players = new HashMap<>();
@@ -34,5 +36,13 @@ public class Game {
 
     public Map<Integer, Player> getPlayers() {
         return players;
+    }
+
+    public GameWorld getGameWorld() {
+        return gameWorld;
+    }
+
+    public void setGameWorld(GameWorld gameWorld) {
+        this.gameWorld = gameWorld;
     }
 }

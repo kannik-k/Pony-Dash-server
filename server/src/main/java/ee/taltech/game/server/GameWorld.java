@@ -14,21 +14,28 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 
 public class GameWorld {
-    private int gameId; // Hiljem tuleb kasutusse, kui lobby on valmis
-    int[][] collisions;
-    private List<NPC> aiBots = new ArrayList<>();
+    private final int gameId;
+    private int[][] collisions;
+    private final GameServer gameServer;
+    private final List<NPC> aiBots = new ArrayList<>();
 
     /**
      * Create game-world.
      * @param gameId id of game
      */
-    public GameWorld(int gameId) {
-        this.generateAiBots();
+    public GameWorld(int gameId, GameServer gameServer) {
+        this.gameId = gameId;
+        this.gameServer = gameServer;
         this.readTilemapData();
+        this.generateAiBots();
     }
 
     public List<NPC> getAiBots() {
         return aiBots;
+    }
+
+    public void deleteBots() {
+        aiBots.clear();
     }
 
     public int[][] getCollisions() {
@@ -119,10 +126,9 @@ public class GameWorld {
      * </p>
      */
     private void generateAiBots() {
-        this.aiBots.add(new NPC((22 * 16),(26 * 16)));
-        this.aiBots.add(new NPC((64 * 16), (26 * 16)));
-        this.aiBots.add(new NPC((93 * 16),(26 * 16)));
-        this.aiBots.add(new NPC((64 * 16), (56 * 16)));
+        this.aiBots.add(new NPC((22 * 16),(26 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((64 * 16), (26 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((93 * 16),(26 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((64 * 16), (56 * 16), collisions, gameId, gameServer, this));
     }
-
 }
