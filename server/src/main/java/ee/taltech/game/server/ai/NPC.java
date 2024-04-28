@@ -7,6 +7,7 @@ import ee.taltech.game.server.Player;
 import ee.taltech.game.server.packets.PacketCaptured;
 import ee.taltech.game.server.packets.PacketOnNpcMove;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -29,6 +30,8 @@ public class NPC {
     private GameServer gameServer;
     private GameWorld gameWorld;
     private ArrayList<AStar.Node> path; // Current path
+    private boolean currentlyCapturedPlayer = false;
+    private LocalDateTime captureStart = LocalDateTime.of(2000, 6, 6, 12, 12, 12); // Old date
 
     /**
      * Create NPC with coordinates and give it a new id.
@@ -55,12 +58,13 @@ public class NPC {
                 executor.shutdown(); // Shut down this method when the game with this npc does not exist anymore
             }
             if (path == null || path.isEmpty()) {
-                Map<Player, List<Integer>> closestPlayer = findClosestPlayer();
-                // System.out.println("Closest player: " + closestPlayer);
-                if (closestPlayer != null) {
-                    int xCur = closestPlayer.entrySet().iterator().next().getValue().getFirst();
-                    int yCur = closestPlayer.entrySet().iterator().next().getValue().get(1);
-                    path = aStar.findPath(tiledX / 16, tiledY / 16, xCur / 16, yCur / 16);
+                if (Duration.between(captureStart, LocalDateTime.now()).toMillis() > 10000) {
+                    Map<Player, List<Integer>> closestPlayer = findClosestPlayer();
+                    if (closestPlayer != null) {
+                        int xCur = closestPlayer.entrySet().iterator().next().getValue().getFirst();
+                        int yCur = closestPlayer.entrySet().iterator().next().getValue().get(1);
+                        path = aStar.findPath(tiledX / 16, tiledY / 16, xCur / 16, yCur / 16);
+                    }
                 }
             } else {
                 PacketOnNpcMove movement = new PacketOnNpcMove();
@@ -106,9 +110,10 @@ public class NPC {
             System.out.println(shortestDistance / 16);
             if (shortestDistance <= 2 * 16) { // If player is 2 tiles away then capture
                 PacketCaptured packetCaptured = new PacketCaptured();
-                packetCaptured.setTime(LocalDateTime.now());
-                packetCaptured.setPlayer(closestPlayer);
+                packetCaptured.setTime(LocalDateTime.now().toString());
                 packetCaptured.setPlayerId(closestPlayer.getId());
+                currentlyCapturedPlayer = true;
+                captureStart = LocalDateTime.now();
                 gameServer.sendInfoAboutCapture(packetCaptured);
             }
             if (shortestDistance < 60 * 16) { // If player is at max 60 tiles away then follow them

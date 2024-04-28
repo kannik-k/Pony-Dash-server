@@ -271,10 +271,10 @@ public class GameServer {
      * @param packetCaptured packet with start time of capture
      */
     public void sendInfoAboutCapture(PacketCaptured packetCaptured) {
-        System.out.println("sent captured packet");
         lock.lock();
         try {
             server.sendToTCP(packetCaptured.getPlayerId(), packetCaptured);
+            System.out.println("YAY");
         } finally {
             lock.unlock();
         }
