@@ -1,14 +1,18 @@
 package ee.taltech.game.server.ai;
 
+import ee.taltech.game.server.Game;
 import ee.taltech.game.server.GameServer;
 import ee.taltech.game.server.GameWorld;
+import ee.taltech.game.server.Player;
+import ee.taltech.game.server.packets.PacketCaptured;
 import ee.taltech.game.server.packets.PacketOnNpcMove;
 
-import java.util.ArrayList;
-import java.util.Random;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import static java.lang.Math.sqrt;
 
 public class NPC {
     private static int currentId = 0;
@@ -46,22 +50,17 @@ public class NPC {
     private void moveThread() {
         AStar aStar = new AStar(collisions);
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        Runnable botRunnable = () -> { // Ajutine suvaline liikumine
+        Runnable botRunnable = () -> {
             if (gameWorld.getAiBots().isEmpty()) {
                 executor.shutdown(); // Shut down this method when the game with this npc does not exist anymore
             }
             if (path == null || path.isEmpty()) {
-                Random rand = new Random();
-                boolean foundGoodLocation = false;
-                while (!foundGoodLocation) {
-                    int xCur = rand.nextInt(100);
-                    int yCur = rand.nextInt(30);
-                    xCur = 64;
-                    yCur = 56;
-                    if (collisions[79 - yCur][xCur] == 0) { // y is subtracted from 79 (80 is map height) because the map array is the other way around
-                        foundGoodLocation = true;
-                        path = aStar.findPath(tiledX / 16, tiledY / 16, xCur, yCur);
-                    }
+                Map<Player, List<Integer>> closestPlayer = findClosestPlayer();
+                // System.out.println("Closest player: " + closestPlayer);
+                if (closestPlayer != null) {
+                    int xCur = closestPlayer.entrySet().iterator().next().getValue().getFirst();
+                    int yCur = closestPlayer.entrySet().iterator().next().getValue().get(1);
+                    path = aStar.findPath(tiledX / 16, tiledY / 16, xCur / 16, yCur / 16);
                 }
             } else {
                 PacketOnNpcMove movement = new PacketOnNpcMove();
@@ -75,7 +74,48 @@ public class NPC {
                 gameServer.sendInfoAboutBotMoving(movement, gameId);
             }
         };
-        executor.scheduleAtFixedRate(botRunnable, 2000, 150, TimeUnit.MILLISECONDS); // Runs botRunnable every 300 milliseconds
+        executor.scheduleAtFixedRate(botRunnable, 2000, 150, TimeUnit.MILLISECONDS); // Runs botRunnable every 150 milliseconds
+    }
+
+    private Map<Player, List<Integer>> findClosestPlayer() { // Saaks vast kasutada mõlemas olukorras ära
+        List<Game> allGames = gameServer.getGames();
+        Game correctGame = null;
+        for (Game game : allGames) {
+            if (game.getGameId() == gameId) {
+                correctGame = game;
+                break;
+            }
+        }
+        if (correctGame != null) {
+            Map<Integer, Player> playersMap = correctGame.getPlayers();
+            Player closestPlayer = null;
+            List<Integer> closestCoordinates = new ArrayList<>();
+            double shortestDistance = Double.MAX_VALUE;
+            for (Map.Entry<Integer, Player> set : playersMap.entrySet()) {
+                int playerX = set.getValue().getTiledX();
+                int playerY = set.getValue().getTiledY();
+                double distanceToPlayer = Math.sqrt(Math.pow(playerX - tiledX, 2) + Math.pow(playerY - tiledY, 2));
+                if (distanceToPlayer < shortestDistance) {
+                    shortestDistance = distanceToPlayer;
+                    closestCoordinates = new ArrayList<>(List.of(playerX, playerY));
+                    closestPlayer = set.getValue();
+                }
+            }
+            Map<Player, List<Integer>> newMap = new HashMap<>();
+            newMap.put(closestPlayer, closestCoordinates);
+            System.out.println(shortestDistance / 16);
+            if (shortestDistance <= 2 * 16) { // If player is 2 tiles away then capture
+                PacketCaptured packetCaptured = new PacketCaptured();
+                packetCaptured.setTime(LocalDateTime.now());
+                packetCaptured.setPlayer(closestPlayer);
+                packetCaptured.setPlayerId(closestPlayer.getId());
+                gameServer.sendInfoAboutCapture(packetCaptured);
+            }
+            if (shortestDistance < 60 * 16) { // If player is at max 60 tiles away then follow them
+                return newMap;
+            }
+        }
+        return null;
     }
 
     public int getNetId() {

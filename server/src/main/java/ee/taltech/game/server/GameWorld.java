@@ -127,8 +127,8 @@ public class GameWorld {
      */
     private void generateAiBots() {
         this.aiBots.add(new NPC((22 * 16),(26 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((64 * 16), (26 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((93 * 16),(26 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((64 * 16), (56 * 16), collisions, gameId, gameServer, this));
+        //this.aiBots.add(new NPC((64 * 16), (26 * 16), collisions, gameId, gameServer, this));
+        //this.aiBots.add(new NPC((93 * 16),(26 * 16), collisions, gameId, gameServer, this));
+        //this.aiBots.add(new NPC((64 * 16), (56 * 16), collisions, gameId, gameServer, this));
     }
 }
