@@ -274,7 +274,6 @@ public class GameServer {
         lock.lock();
         try {
             server.sendToTCP(packetCaptured.getPlayerId(), packetCaptured);
-            System.out.println("YAY");
         } finally {
             lock.unlock();
         }

@@ -31,7 +31,7 @@ public class Game {
     }
 
     public void setPlayers(Map<Integer, Player> players) {
-        this.players = new  HashMap<Integer, Player>(players);
+        this.players = new  HashMap<>(players);
     }
 
     public Map<Integer, Player> getPlayers() {
