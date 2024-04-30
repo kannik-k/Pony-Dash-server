@@ -91,6 +91,7 @@ public class GameServer {
                         PacketPlayerConnect packetPlayerConnect = new PacketPlayerConnect();
                         packetPlayerConnect.setPlayerID(singlePlayer.getId());
                         packetPlayerConnect.setPlayerName(singlePlayer.getUserName());
+                        packetPlayerConnect.setGameID(singlePlayer.getGameId());
                         server.sendToTCP(singlePlayer.getId(), packetPlayerConnect);
 
                         for (NPC npc : gameWorld.getAiBots()) {
@@ -263,6 +264,23 @@ public class GameServer {
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * Send player info about them being captured by bot.
+     * @param packetCaptured packet with start time of capture
+     */
+    public void sendInfoAboutCapture(PacketCaptured packetCaptured) {
+        lock.lock();
+        try {
+            server.sendToTCP(packetCaptured.getPlayerId(), packetCaptured);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public List<Game> getGames() {
+        return games;
     }
 
     public static void main(String[] args) {
