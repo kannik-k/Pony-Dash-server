@@ -191,6 +191,8 @@ public class GameServer {
                     receivedGameId = ((PacketPlayerConnect) object).getGameID();
                 } else if (object instanceof PacketGameOver) {
                     receivedGameId = ((PacketGameOver) object).getGameId();
+                } else if (object instanceof PacketPowerUpTaken) {
+                    receivedGameId = ((PacketPowerUpTaken) object).getGameId();
                 }
 
                 Game currentGame = null;
@@ -211,6 +213,12 @@ public class GameServer {
                         peer.setTiledX(packet.getTiledX());
                         peer.setTiledY(packet.getTiledY());
                         server.sendToAllUDP(object);
+                    }
+
+                    if (object instanceof  PacketPowerUpTaken packet) {
+                        for (Map.Entry<Integer, Player> set : currentGame.getPlayers().entrySet()) {
+                            server.sendToTCP(set.getKey(), packet);
+                        }
                     }
 
                     if (object instanceof PacketGameOver packet) {
