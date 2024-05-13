@@ -4,6 +4,7 @@ import ee.taltech.game.server.Game;
 import ee.taltech.game.server.GameServer;
 import ee.taltech.game.server.GameWorld;
 import ee.taltech.game.server.Player;
+import ee.taltech.game.server.ai.AStar;
 import ee.taltech.game.server.packets.PacketCaptured;
 import ee.taltech.game.server.packets.PacketOnNpcMove;
 
@@ -13,13 +14,16 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import static java.lang.Math.sqrt;
 
 public class NPC {
     private static int currentId = 0;
+
     private static void incrementNextId() {
         currentId++;
     }
+
     private final int netId;
     private float x; // Box2d world coordinate
     private float y;
@@ -34,6 +38,7 @@ public class NPC {
 
     /**
      * Create NPC with coordinates and give it a new id.
+     *
      * @param tiledX coordinate
      * @param tiledY coordinate
      */
@@ -51,21 +56,34 @@ public class NPC {
 
     private void moveThread() {
         AStar aStar = new AStar(collisions);
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        Runnable botRunnable = () -> {
+
+        // Executor for decision-making (higher frequency)
+        ScheduledExecutorService decisionExecutor = Executors.newScheduledThreadPool(1);
+        Runnable decisionRunnable = () -> {
             if (gameWorld.getAiBots().isEmpty()) {
-                executor.shutdown(); // Shut down this method when the game with this npc does not exist anymore
+                decisionExecutor.shutdown(); // Shut down this method when the game with this npc does not exist anymore
             }
             if (path == null || path.isEmpty()) {
                 if (Duration.between(captureStart, LocalDateTime.now()).toMillis() > 10000) {
                     Map<Player, List<Integer>> closestPlayer = findClosestPlayer();
                     if (!closestPlayer.isEmpty()) {
-                        int xCur = closestPlayer.entrySet().iterator().next().getValue().getFirst();
+                        int xCur = closestPlayer.entrySet().iterator().next().getValue().get(0);
                         int yCur = closestPlayer.entrySet().iterator().next().getValue().get(1);
                         path = aStar.findPath(tiledX / 16, tiledY / 16, xCur / 16, yCur / 16);
                     }
                 }
-            } else {
+            }
+        };
+        decisionExecutor.scheduleAtFixedRate(decisionRunnable, 2000, 2, TimeUnit.MILLISECONDS);
+
+        // Executor for movement updates (lower frequency)
+        ScheduledExecutorService movementExecutor = Executors.newScheduledThreadPool(1);
+        Runnable movementRunnable = () -> {
+            if (gameWorld.getAiBots().isEmpty()) {
+                // Also shut down movementExecutor if no bots are present
+                movementExecutor.shutdown();
+            }
+            if (path != null && !path.isEmpty()) {
                 PacketOnNpcMove movement = new PacketOnNpcMove();
                 movement.setNetId(netId);
                 AStar.Node node = path.getFirst();
@@ -77,7 +95,7 @@ public class NPC {
                 gameServer.sendInfoAboutBotMoving(movement, gameId);
             }
         };
-        executor.scheduleAtFixedRate(botRunnable, 2000, 50, TimeUnit.MILLISECONDS); // Runs botRunnable every 60 milliseconds
+        movementExecutor.scheduleAtFixedRate(movementRunnable, 2000, 60, TimeUnit.MILLISECONDS);
     }
 
     private Map<Player, List<Integer>> findClosestPlayer() {
@@ -106,7 +124,7 @@ public class NPC {
             }
             Map<Player, List<Integer>> newMap = new HashMap<>();
             newMap.put(closestPlayer, closestCoordinates);
-            if (shortestDistance <= 2 * 16) { // If player is 2 tiles away then capture
+            if (shortestDistance <= 3 * 16) { // If player is 2 tiles away then capture
                 PacketCaptured packetCaptured = new PacketCaptured();
                 packetCaptured.setTime(LocalDateTime.now().toString());
                 packetCaptured.setPlayerId(closestPlayer.getId());
