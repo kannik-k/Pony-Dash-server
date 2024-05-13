@@ -126,11 +126,22 @@ public class GameWorld {
      * </p>
      */
     private void generateAiBots() {
-        this.aiBots.add(new NPC((64 * 16), (26 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((65 * 16), (26 * 16), collisions, gameId, gameServer, this));
         this.aiBots.add(new NPC((110 * 16),(43 * 16), collisions, gameId, gameServer, this));
         this.aiBots.add(new NPC((268 * 16), (39 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((314 * 16),(39 * 16), collisions, gameId, gameServer, this));
         this.aiBots.add(new NPC((408 * 16),(74 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((546 * 16),(26 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((505 * 16),(32 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((551 * 16),(26 * 16), collisions, gameId, gameServer, this));
         this.aiBots.add(new NPC((680 * 16),(61 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((755 * 16),(41 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((844 * 16),(61 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((998 * 16),(26 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((1231 * 16),(67 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((1392 * 16),(51 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((1569 * 16),(62 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((1780 * 16),(53 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((1956 * 16),(43 * 16), collisions, gameId, gameServer, this));
+        this.aiBots.add(new NPC((2305 * 16),(43 * 16), collisions, gameId, gameServer, this));
     }
 }
