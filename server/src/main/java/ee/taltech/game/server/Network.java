@@ -41,5 +41,8 @@ public class Network {
         kryo.register(PacketCaptured.class);
 
         kryo.register(PacketPowerUpTaken.class);
+
+        kryo.register(PacketPlayerLeftLobby.class);
+        kryo.register(PacketUpdateLobby.class);
     }
 }
