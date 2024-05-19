@@ -4,6 +4,7 @@ public class PacketPlayerConnect extends Packet {
     private String playerName;
     private int playerID;
     private int gameID;
+    private int id;
 
     public String getPlayerName() {
         return playerName;
@@ -27,5 +28,13 @@ public class PacketPlayerConnect extends Packet {
 
     public void setGameID(int gameID) {
         this.gameID = gameID;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

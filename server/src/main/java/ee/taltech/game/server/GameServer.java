@@ -244,6 +244,8 @@ public class GameServer {
                         peer.setY(packet.getY());
                         peer.setTiledX(packet.getTiledX());
                         peer.setTiledY(packet.getTiledY());
+                        peer.setState(packet.getState());
+                        peer.setSpriteId(packet.getSpriteId());
                         server.sendToAllUDP(object);
                     }
 

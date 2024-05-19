@@ -1,12 +1,14 @@
 package ee.taltech.game.server.packets;
 
-public class PacketSendCoordinates extends Packet{
+public class PacketSendCoordinates extends Packet {
     private float x;
     private float y;
     private int tiledX;
     private int tiledY;
     private int playerID;
     private int gameID;
+    private int spriteId;
+    private String state;
 
     public float getX() {
         return x;
@@ -54,5 +56,21 @@ public class PacketSendCoordinates extends Packet{
 
     public void setGameID(int gameID) {
         this.gameID = gameID;
+    }
+
+    public int getSpriteId() {
+        return spriteId;
+    }
+
+    public void setSpriteId(int spriteId) {
+        this.spriteId = spriteId;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 }
