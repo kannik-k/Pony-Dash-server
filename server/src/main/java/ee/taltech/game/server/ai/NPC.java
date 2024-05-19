@@ -74,7 +74,7 @@ public class NPC {
                 }
             }
         };
-        decisionExecutor.scheduleAtFixedRate(decisionRunnable, 2000, 2, TimeUnit.MILLISECONDS);
+        decisionExecutor.scheduleAtFixedRate(decisionRunnable, 2000, 1, TimeUnit.MILLISECONDS);
 
         // Executor for movement updates (lower frequency)
         ScheduledExecutorService movementExecutor = Executors.newScheduledThreadPool(1);
@@ -95,7 +95,7 @@ public class NPC {
                 gameServer.sendInfoAboutBotMoving(movement, gameId);
             }
         };
-        movementExecutor.scheduleAtFixedRate(movementRunnable, 2000, 60, TimeUnit.MILLISECONDS);
+        movementExecutor.scheduleAtFixedRate(movementRunnable, 2000, 50, TimeUnit.MILLISECONDS);
     }
 
     private Map<Player, List<Integer>> findClosestPlayer() {
@@ -131,7 +131,7 @@ public class NPC {
                 captureStart = LocalDateTime.now();
                 gameServer.sendInfoAboutCapture(packetCaptured);
             }
-            if (shortestDistance < 30 * 16) { // If player is at max 30 tiles away then follow them
+            if (shortestDistance < 25 * 16) { // If player is at max 25 tiles away then follow them
                 return newMap;
             }
         }
