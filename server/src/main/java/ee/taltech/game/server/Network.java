@@ -44,5 +44,7 @@ public class Network {
 
         kryo.register(PacketPlayerLeftLobby.class);
         kryo.register(PacketUpdateLobby.class);
+
+        kryo.register(PacketPlayerExitedGame.class);
     }
 }

@@ -44,18 +44,26 @@ public class GameServer {
             /**
              * Create listener for incoming packets.
              * <p>
-             *     There are four kinds of packets the server receives.
-             *     1. The PacketSinglePlayer and OnStartGame packets are received when players connect the game. All of the connected
+             *     There are ten kinds of packets the server receives.
+             *     1. PacketPlayerLeftLobby is received when someone leaves the lobby.
+             *     2. OnStartGame is received when a multiplayer game is started.
+             *     3. The PacketSinglePlayer and OnStartGame packets are received when players connect the game. All of the connected
              *     players and npc-s existence information is sent to the new connected player. The new connected player is
              *     created, added to the players map and its existence information is sent to all other connected
              *     players.
-             *     2. PlayerJoinPacket is sent to server when player joins with the lobby. If there are already players
+             *     4. PlayerJoinPacket is sent to server when player joins with the lobby. If there are already players
              *     in the lobby, OnLobbyJoin and OnLobbyList will notify other players in the lobby and the new player
              *     will receive a list of players already in the lobby. New player will receive a gameId.
-             *     3. The packet PacketSendCoordinates is received constantly with updated players' location. The
+             *     5. PacketUpdateLobby
+             *     6. The packet PacketSendCoordinates is received constantly with updated players' location. The
              *     coordinates of a player are then sent to all other players that are connected.
-             *     4. PacketGameOver contains winners id and name. When the packet reaches server, it will sent it to
+             *     7. PacketPlayerConnect is received when a new client is created.
+             *     8. PacketGameOver contains winners id and name. When the packet reaches server, it will sent it to
              *     every other player in the game.
+             *     9. PacketPowerUpTaken is received when someone picks up a power-up, the info is then sent to other
+             *     players in that game.
+             *     10. PacketPlayerExitedGame is received when someone disconnects during a game. The info is then sent
+             *     to other players in that game.
              * </p>
              * @param connection
              * @param object
@@ -231,6 +239,8 @@ public class GameServer {
                     receivedGameId = ((PacketGameOver) object).getGameId();
                 } else if (object instanceof PacketPowerUpTaken) {
                     receivedGameId = ((PacketPowerUpTaken) object).getGameId();
+                } else if (object instanceof PacketPlayerExitedGame) {
+                    receivedGameId = ((PacketPlayerExitedGame) object).getGameId();
                 }
 
                 Game currentGame = null;
@@ -244,18 +254,29 @@ public class GameServer {
 
                     if (object instanceof PacketSendCoordinates packet) {
                         int playerID = packet.getPlayerID();
-                        Player peer = currentGame.getPlayers().get(playerID);
+                        if (currentGame.getPlayers().containsKey(playerID)) {
+                            Player peer = currentGame.getPlayers().get(playerID);
 
-                        peer.setX(packet.getX());
-                        peer.setY(packet.getY());
-                        peer.setTiledX(packet.getTiledX());
-                        peer.setTiledY(packet.getTiledY());
-                        server.sendToAllUDP(object);
+                            peer.setX(packet.getX());
+                            peer.setY(packet.getY());
+                            peer.setTiledX(packet.getTiledX());
+                            peer.setTiledY(packet.getTiledY());
+                            server.sendToAllUDP(object);
+                        }
                     }
 
                     if (object instanceof  PacketPowerUpTaken packet) {
                         for (Map.Entry<Integer, Player> set : currentGame.getPlayers().entrySet()) {
                             server.sendToTCP(set.getKey(), packet);
+                        }
+                    }
+
+                    if (object instanceof PacketPlayerExitedGame packet) {
+                        currentGame.removePlayer(packet.getId());
+                        for (Map.Entry<Integer, Player> set : currentGame.getPlayers().entrySet()) {
+                            if (set.getKey() != packet.getId()) {
+                                server.sendToTCP(set.getKey(), packet);
+                            }
                         }
                     }
 
