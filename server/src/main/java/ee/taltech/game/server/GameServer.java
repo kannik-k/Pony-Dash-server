@@ -103,7 +103,6 @@ public class GameServer {
 
                     if (object instanceof PacketSinglePlayer singlePlayer) {
                         Game game = new Game(gameId);
-                        GameWorld gameWorld = new GameWorld(gameId, gameServer);
                         singlePlayer.setGameId(gameId);
                         singlePlayer.setId(connection.getID());
 
@@ -119,6 +118,9 @@ public class GameServer {
                         packetPlayerConnect.setGameID(singlePlayer.getGameId());
                         server.sendToTCP(singlePlayer.getId(), packetPlayerConnect);
 
+                        game.setPlayers(singlePlayers);
+                        GameWorld gameWorld = new GameWorld(gameId, game, gameServer);
+
                         for (NPC npc : gameWorld.getAiBots()) {
                             PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
                             packetOnSpawnNpc.setId(npc.getNetId());
@@ -127,7 +129,6 @@ public class GameServer {
                             server.sendToTCP(singlePlayer.getId(), packetOnSpawnNpc);
                         }
 
-                        game.setPlayers(singlePlayers);
                         game.setGameWorld(gameWorld);
 
                         games.add(game);
@@ -137,7 +138,6 @@ public class GameServer {
 
                     if (object instanceof OnStartGame packet) {
                         Game game = new Game(gameId);
-                        GameWorld gameWorld = new GameWorld(gameId, gameServer);
                         packet.setGameId(gameId);
                         for (PlayerJoinPacket peer : lobby.getPeers()) {
                             for (Map.Entry<Integer, Player> set : players.entrySet()) {
@@ -147,13 +147,6 @@ public class GameServer {
                                 packetPlayerConnect.setPlayerID(set.getKey());
                                 packetPlayerConnect.setPlayerName(set.getValue().getPlayerName());
                                 server.sendToTCP(peer.getId(), packetPlayerConnect);
-                            }
-                            for (NPC npc : gameWorld.getAiBots()) {
-                                PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
-                                packetOnSpawnNpc.setId(npc.getNetId());
-                                packetOnSpawnNpc.setTiledX(npc.getTiledX());
-                                packetOnSpawnNpc.setTiledY(npc.getTiledY());
-                                server.sendToTCP(peer.getId(), packetOnSpawnNpc);
                             }
 
                             peer.setGameId(gameId);
@@ -165,7 +158,20 @@ public class GameServer {
                         }
 
                         game.setPlayers(players);
+                        GameWorld gameWorld = new GameWorld(gameId, game, gameServer);
+
+                        for (PlayerJoinPacket peer : lobby.getPeers()) {
+                            for (NPC npc : gameWorld.getAiBots()) {
+                                PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
+                                packetOnSpawnNpc.setId(npc.getNetId());
+                                packetOnSpawnNpc.setTiledX(npc.getTiledX());
+                                packetOnSpawnNpc.setTiledY(npc.getTiledY());
+                                server.sendToTCP(peer.getId(), packetOnSpawnNpc);
+                            }
+                        }
+
                         game.setGameWorld(gameWorld);
+
                         lobby.clearPeers();
                         games.add(game);
                         gameId++;
