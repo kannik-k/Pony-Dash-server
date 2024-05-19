@@ -91,14 +91,14 @@ public class GameServer {
                 }
 
                 int gameID = -1;
-                if (object instanceof OnStartGame) {
-                    gameID = ((OnStartGame) object).getGameId();
-                } else if (object instanceof PlayerJoinPacket) {
-                    gameID = ((PlayerJoinPacket) object).getGameId();
-                } else if (object instanceof PacketSinglePlayer) {
-                    gameID = ((PacketSinglePlayer) object).getGameId();
-                } else if (object instanceof PacketUpdateLobby) {
-                    gameID = ((PacketUpdateLobby) object).getGameId();
+                if (object instanceof OnStartGame onStartGame) {
+                    gameID = onStartGame.getGameId();
+                } else if (object instanceof PlayerJoinPacket playerJoinPacket) {
+                    gameID = playerJoinPacket.getGameId();
+                } else if (object instanceof PacketSinglePlayer packetSinglePlayer) {
+                    gameID = packetSinglePlayer.getGameId();
+                } else if (object instanceof PacketUpdateLobby packetUpdateLobby) {
+                    gameID = packetUpdateLobby.getGameId();
                 }
 
                 if (gameID == 0) {
@@ -226,15 +226,15 @@ public class GameServer {
                 int receivedGameId = -1;
 
                 if (object instanceof PacketSendCoordinates packetSendCoordinates) {
-                    receivedGameId = (packetSendCoordinates.getGameID());
-                } else if (object instanceof PacketPlayerConnect) {
-                    receivedGameId = ((PacketPlayerConnect) object).getGameID();
-                } else if (object instanceof PacketGameOver) {
-                    receivedGameId = ((PacketGameOver) object).getGameId();
-                } else if (object instanceof PacketPowerUpTaken) {
-                    receivedGameId = ((PacketPowerUpTaken) object).getGameId();
-                } else if (object instanceof PacketPlayerExitedGame) {
-                    receivedGameId = ((PacketPlayerExitedGame) object).getGameId();
+                    receivedGameId = packetSendCoordinates.getGameID();
+                } else if (object instanceof PacketPlayerConnect packetPlayerConnect) {
+                    receivedGameId = packetPlayerConnect.getGameID();
+                } else if (object instanceof PacketGameOver packetGameOver) {
+                    receivedGameId = packetGameOver.getGameId();
+                } else if (object instanceof PacketPowerUpTaken packetPowerUpTaken) {
+                    receivedGameId = packetPowerUpTaken.getGameId();
+                } else if (object instanceof PacketPlayerExitedGame packetPlayerExitedGame) {
+                    receivedGameId = packetPlayerExitedGame.getGameId();
                 }
 
                 Game currentGame = null;
