@@ -37,6 +37,9 @@ public class Game {
     public Map<Integer, Player> getPlayers() {
         return players;
     }
+    public void removePlayer(int id) {
+        players.remove(id);
+    }
 
     public GameWorld getGameWorld() {
         return gameWorld;
