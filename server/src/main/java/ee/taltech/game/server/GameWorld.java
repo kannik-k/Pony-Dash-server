@@ -136,10 +136,8 @@ public class GameWorld {
                 List.of(680 * 16, 61 * 16), List.of(755 * 16, 41 * 16), List.of(844 * 16, 61 * 16),
                 List.of(998 * 16, 26 * 16)); // List has bots in first and second part of map in turns
 
-        System.out.println(game.getPlayers().size());
         for (int i = 0; i < Math.min(game.getPlayers().size() * 3, 18); i++) { // Generate 3 bots per player, max is 18 bots
             this.aiBots.add(new NPC(botCoordinates.get(i).get(0),botCoordinates.get(i).get(1), collisions, gameId, gameServer, this));
         }
-        System.out.println(aiBots);
     }
 }
