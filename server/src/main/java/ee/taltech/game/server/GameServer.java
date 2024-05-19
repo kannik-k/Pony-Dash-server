@@ -9,10 +9,7 @@ import ee.taltech.game.server.lobby.Lobby;
 import ee.taltech.game.server.packets.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class GameServer {
@@ -65,6 +62,32 @@ public class GameServer {
              */
             @Override
             public void received (Connection connection, Object object) {
+
+                if (object instanceof PacketPlayerLeftLobby packet) {
+                    System.out.println("received packet player left lobby.");
+                    List<PlayerJoinPacket> peers = lobby.getPeers();
+                    String nameToRemove = packet.getName();
+                    int playerIdToRemove = packet.getId();
+                    for (int i = 0; i < peers.size(); i++) {
+                        PlayerJoinPacket player = peers.get(i);
+                        System.out.println("player id: " + player.getId());
+                        System.out.println("Remove id: " + playerIdToRemove);
+                        System.out.println("Name: " + player.getUserName());
+                        System.out.println("Name to remove: " + nameToRemove);
+                        if (Objects.equals(player.getUserName(), nameToRemove)) {
+                            peers.remove(i);
+                        }
+                    }
+
+                    PacketUpdateLobby update = new PacketUpdateLobby();
+                    update.setLobbySize(lobby.getPeers().size());
+
+                    for (PlayerJoinPacket player : lobby.getPeers()) {
+                        System.out.println("player count: " + lobby.getPeers().size());
+                        server.sendToTCP(player.getId(), update);
+                    }
+                }
+
                 int gameID = -1;
                 if (object instanceof OnStartGame) {
                     gameID = ((OnStartGame) object).getGameId();
@@ -72,6 +95,8 @@ public class GameServer {
                     gameID = ((PlayerJoinPacket) object).getGameId();
                 } else if (object instanceof PacketSinglePlayer) {
                     gameID = ((PacketSinglePlayer) object).getGameId();
+                } else if (object instanceof PacketUpdateLobby) {
+                    gameID = ((PacketUpdateLobby) object).getGameId();
                 }
 
                 if (gameID == 0) {
@@ -148,6 +173,8 @@ public class GameServer {
                     }
 
                     if (object instanceof PlayerJoinPacket joinedPlayer) {
+                        PacketUpdateLobby update = new PacketUpdateLobby();
+
                         joinedPlayer.setUserName(joinedPlayer.getUserName());
 
                         ArrayList<OnLobbyJoin> lobbyPlayers = new ArrayList<>();
@@ -180,6 +207,11 @@ public class GameServer {
                         server.sendToTCP(connection.getID(), list);
                         joinedPeer.setId(connection.getID());
                         lobby.addPeer(joinedPlayer, connection.getID());
+                        update.setLobbySize(lobby.getPeers().size());
+
+                        for (PlayerJoinPacket player : lobby.getPeers()) {
+                            server.sendToTCP(player.getId(), update);
+                        }
                     }
                 }
 
