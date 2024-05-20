@@ -14,17 +14,16 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class GameServer {
 
-    private Server server;
-    private Map<Integer, Player> players = new HashMap<>();
-    private Map<Integer, Player> singlePlayers = new HashMap<>();
+    private final Server server;
+    private final Map<Integer, Player> players = new HashMap<>();
+    private final Map<Integer, Player> singlePlayers = new HashMap<>();
     private int gameId = 1;
-    private List<Game> games = new ArrayList<>();
+    private final List<Game> games = new ArrayList<>();
     private final ReentrantLock lock = new ReentrantLock();
     Lobby lobby = new Lobby();
 
     /**
      * Create game-server.
-     *
      * Creates a new server, registers it to the network and connects it to a port.
      * A listener is added for incoming packets.
      *
@@ -65,8 +64,8 @@ public class GameServer {
              *     10. PacketPlayerExitedGame is received when someone disconnects during a game. The info is then sent
              *     to other players in that game.
              * </p>
-             * @param connection
-             * @param object
+             * @param connection connection.
+             * @param object object.
              */
             @Override
             public void received (Connection connection, Object object) {
@@ -78,7 +77,6 @@ public class GameServer {
                         PlayerJoinPacket player = peers.get(i);
                         if (Objects.equals(player.getUserName(), nameToRemove)) {
                             peers.remove(i);
-                            break;
                         }
                     }
 
@@ -131,6 +129,7 @@ public class GameServer {
                             server.sendToTCP(singlePlayer.getId(), packetOnSpawnNpc);
                         }
 
+                        game.setPlayers(singlePlayers);
                         game.setGameWorld(gameWorld);
 
                         games.add(game);
@@ -255,8 +254,11 @@ public class GameServer {
                             peer.setY(packet.getY());
                             peer.setTiledX(packet.getTiledX());
                             peer.setTiledY(packet.getTiledY());
+                            peer.setState(packet.getState());
+                            peer.setSpriteId(packet.getSpriteId());
                             server.sendToAllUDP(object);
                         }
+
                     }
 
                     if (object instanceof  PacketPowerUpTaken packet) {
