@@ -15,6 +15,7 @@ import javax.xml.parsers.DocumentBuilder;
 
 public class GameWorld {
     private final int gameId;
+    private final Game game;
     private int[][] collisions;
     private final GameServer gameServer;
     private final List<NPC> aiBots = new ArrayList<>();
@@ -23,8 +24,9 @@ public class GameWorld {
      * Create game-world.
      * @param gameId id of game
      */
-    public GameWorld(int gameId, GameServer gameServer) {
+    public GameWorld(int gameId, Game game, GameServer gameServer) {
         this.gameId = gameId;
+        this.game = game;
         this.gameServer = gameServer;
         this.readTilemapData();
         this.generateAiBots();
@@ -126,22 +128,16 @@ public class GameWorld {
      * </p>
      */
     private void generateAiBots() {
-        this.aiBots.add(new NPC((65 * 16), (26 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((110 * 16),(43 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((268 * 16), (39 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((314 * 16),(39 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((408 * 16),(74 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((505 * 16),(32 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((551 * 16),(26 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((680 * 16),(61 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((755 * 16),(41 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((844 * 16),(61 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((998 * 16),(26 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((1231 * 16),(67 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((1392 * 16),(51 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((1569 * 16),(62 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((1780 * 16),(53 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((1956 * 16),(43 * 16), collisions, gameId, gameServer, this));
-        this.aiBots.add(new NPC((2305 * 16),(43 * 16), collisions, gameId, gameServer, this));
+        List<List<Integer>> botCoordinates = List.of(List.of(84 * 16, 26 * 16), List.of(1231 * 16, 67 * 16),
+                List.of(149 * 16, 53 * 16), List.of(1392 * 16, 51 * 16), List.of(268 * 16, 39 * 16),
+                List.of(1569 * 16, 62 * 16), List.of(314 * 16, 39 * 16), List.of(1780 * 16, 53 * 16),
+                List.of(408 * 16, 74 * 16), List.of(1956 * 16, 43 * 16), List.of(505 * 16, 32 * 16),
+                List.of(2305 * 16, 43 * 16), List.of(551 * 16, 26 * 16), List.of(2371 * 16, 46 * 16),
+                List.of(680 * 16, 61 * 16), List.of(755 * 16, 41 * 16), List.of(844 * 16, 61 * 16),
+                List.of(998 * 16, 26 * 16)); // List has bots in first and second part of map in turns
+
+        for (int i = 0; i < Math.min(game.getPlayers().size() * 3, 18); i++) { // Generate 3 bots per player, max is 18 bots
+            this.aiBots.add(new NPC(botCoordinates.get(i).get(0),botCoordinates.get(i).get(1), collisions, gameId, gameServer, this));
+        }
     }
 }

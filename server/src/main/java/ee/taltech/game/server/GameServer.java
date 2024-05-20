@@ -14,17 +14,16 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class GameServer {
 
-    private Server server;
-    private Map<Integer, Player> players = new HashMap<>();
-    private Map<Integer, Player> singlePlayers = new HashMap<>();
+    private final Server server;
+    private final Map<Integer, Player> players = new HashMap<>();
+    private final Map<Integer, Player> singlePlayers = new HashMap<>();
     private int gameId = 1;
-    private List<Game> games = new ArrayList<>();
+    private final List<Game> games = new ArrayList<>();
     private final ReentrantLock lock = new ReentrantLock();
     Lobby lobby = new Lobby();
 
     /**
      * Create game-server.
-     *
      * Creates a new server, registers it to the network and connects it to a port.
      * A listener is added for incoming packets.
      *
@@ -44,36 +43,38 @@ public class GameServer {
             /**
              * Create listener for incoming packets.
              * <p>
-             *     There are four kinds of packets the server receives.
-             *     1. The PacketSinglePlayer and OnStartGame packets are received when players connect the game. All of the connected
+             *     There are ten kinds of packets the server receives.
+             *     1. PacketPlayerLeftLobby is received when someone leaves the lobby.
+             *     2. OnStartGame is received when a multiplayer game is started.
+             *     3. The PacketSinglePlayer and OnStartGame packets are received when players connect the game. All of the connected
              *     players and npc-s existence information is sent to the new connected player. The new connected player is
              *     created, added to the players map and its existence information is sent to all other connected
              *     players.
-             *     2. PlayerJoinPacket is sent to server when player joins with the lobby. If there are already players
+             *     4. PlayerJoinPacket is sent to server when player joins with the lobby. If there are already players
              *     in the lobby, OnLobbyJoin and OnLobbyList will notify other players in the lobby and the new player
              *     will receive a list of players already in the lobby. New player will receive a gameId.
-             *     3. The packet PacketSendCoordinates is received constantly with updated players' location. The
+             *     5. PacketUpdateLobby
+             *     6. The packet PacketSendCoordinates is received constantly with updated players' location. The
              *     coordinates of a player are then sent to all other players that are connected.
-             *     4. PacketGameOver contains winners id and name. When the packet reaches server, it will sent it to
+             *     7. PacketPlayerConnect is received when a new client is created.
+             *     8. PacketGameOver contains winners id and name. When the packet reaches server, it will sent it to
              *     every other player in the game.
+             *     9. PacketPowerUpTaken is received when someone picks up a power-up, the info is then sent to other
+             *     players in that game.
+             *     10. PacketPlayerExitedGame is received when someone disconnects during a game. The info is then sent
+             *     to other players in that game.
              * </p>
-             * @param connection
-             * @param object
+             * @param connection connection.
+             * @param object object.
              */
             @Override
             public void received (Connection connection, Object object) {
 
                 if (object instanceof PacketPlayerLeftLobby packet) {
-                    System.out.println("received packet player left lobby.");
                     List<PlayerJoinPacket> peers = lobby.getPeers();
                     String nameToRemove = packet.getName();
-                    int playerIdToRemove = packet.getId();
                     for (int i = 0; i < peers.size(); i++) {
                         PlayerJoinPacket player = peers.get(i);
-                        System.out.println("player id: " + player.getId());
-                        System.out.println("Remove id: " + playerIdToRemove);
-                        System.out.println("Name: " + player.getUserName());
-                        System.out.println("Name to remove: " + nameToRemove);
                         if (Objects.equals(player.getUserName(), nameToRemove)) {
                             peers.remove(i);
                         }
@@ -83,27 +84,25 @@ public class GameServer {
                     update.setLobbySize(lobby.getPeers().size());
 
                     for (PlayerJoinPacket player : lobby.getPeers()) {
-                        System.out.println("player count: " + lobby.getPeers().size());
                         server.sendToTCP(player.getId(), update);
                     }
                 }
 
                 int gameID = -1;
-                if (object instanceof OnStartGame) {
-                    gameID = ((OnStartGame) object).getGameId();
-                } else if (object instanceof PlayerJoinPacket) {
-                    gameID = ((PlayerJoinPacket) object).getGameId();
-                } else if (object instanceof PacketSinglePlayer) {
-                    gameID = ((PacketSinglePlayer) object).getGameId();
-                } else if (object instanceof PacketUpdateLobby) {
-                    gameID = ((PacketUpdateLobby) object).getGameId();
+                if (object instanceof OnStartGame onStartGame) {
+                    gameID = onStartGame.getGameId();
+                } else if (object instanceof PlayerJoinPacket playerJoinPacket) {
+                    gameID = playerJoinPacket.getGameId();
+                } else if (object instanceof PacketSinglePlayer packetSinglePlayer) {
+                    gameID = packetSinglePlayer.getGameId();
+                } else if (object instanceof PacketUpdateLobby packetUpdateLobby) {
+                    gameID = packetUpdateLobby.getGameId();
                 }
 
                 if (gameID == 0) {
 
                     if (object instanceof PacketSinglePlayer singlePlayer) {
                         Game game = new Game(gameId);
-                        GameWorld gameWorld = new GameWorld(gameId, gameServer);
                         singlePlayer.setGameId(gameId);
                         singlePlayer.setId(connection.getID());
 
@@ -118,6 +117,9 @@ public class GameServer {
                         packetPlayerConnect.setPlayerName(singlePlayer.getUserName());
                         packetPlayerConnect.setGameID(singlePlayer.getGameId());
                         server.sendToTCP(singlePlayer.getId(), packetPlayerConnect);
+
+                        game.setPlayers(singlePlayers);
+                        GameWorld gameWorld = new GameWorld(gameId, game, gameServer);
 
                         for (NPC npc : gameWorld.getAiBots()) {
                             PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
@@ -137,7 +139,6 @@ public class GameServer {
 
                     if (object instanceof OnStartGame packet) {
                         Game game = new Game(gameId);
-                        GameWorld gameWorld = new GameWorld(gameId, gameServer);
                         packet.setGameId(gameId);
                         for (PlayerJoinPacket peer : lobby.getPeers()) {
                             for (Map.Entry<Integer, Player> set : players.entrySet()) {
@@ -147,13 +148,6 @@ public class GameServer {
                                 packetPlayerConnect.setPlayerID(set.getKey());
                                 packetPlayerConnect.setPlayerName(set.getValue().getPlayerName());
                                 server.sendToTCP(peer.getId(), packetPlayerConnect);
-                            }
-                            for (NPC npc : gameWorld.getAiBots()) {
-                                PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
-                                packetOnSpawnNpc.setId(npc.getNetId());
-                                packetOnSpawnNpc.setTiledX(npc.getTiledX());
-                                packetOnSpawnNpc.setTiledY(npc.getTiledY());
-                                server.sendToTCP(peer.getId(), packetOnSpawnNpc);
                             }
 
                             peer.setGameId(gameId);
@@ -165,7 +159,20 @@ public class GameServer {
                         }
 
                         game.setPlayers(players);
+                        GameWorld gameWorld = new GameWorld(gameId, game, gameServer);
+
+                        for (PlayerJoinPacket peer : lobby.getPeers()) {
+                            for (NPC npc : gameWorld.getAiBots()) {
+                                PacketOnSpawnNpc packetOnSpawnNpc = new PacketOnSpawnNpc();
+                                packetOnSpawnNpc.setId(npc.getNetId());
+                                packetOnSpawnNpc.setTiledX(npc.getTiledX());
+                                packetOnSpawnNpc.setTiledY(npc.getTiledY());
+                                server.sendToTCP(peer.getId(), packetOnSpawnNpc);
+                            }
+                        }
+
                         game.setGameWorld(gameWorld);
+
                         lobby.clearPeers();
                         games.add(game);
                         gameId++;
@@ -217,14 +224,16 @@ public class GameServer {
 
                 int receivedGameId = -1;
 
-                if (object instanceof PacketSendCoordinates) {
-                    receivedGameId = ((PacketSendCoordinates) object).getGameID();
-                } else if (object instanceof PacketPlayerConnect) {
-                    receivedGameId = ((PacketPlayerConnect) object).getGameID();
-                } else if (object instanceof PacketGameOver) {
-                    receivedGameId = ((PacketGameOver) object).getGameId();
-                } else if (object instanceof PacketPowerUpTaken) {
-                    receivedGameId = ((PacketPowerUpTaken) object).getGameId();
+                if (object instanceof PacketSendCoordinates packetSendCoordinates) {
+                    receivedGameId = packetSendCoordinates.getGameID();
+                } else if (object instanceof PacketPlayerConnect packetPlayerConnect) {
+                    receivedGameId = packetPlayerConnect.getGameID();
+                } else if (object instanceof PacketGameOver packetGameOver) {
+                    receivedGameId = packetGameOver.getGameId();
+                } else if (object instanceof PacketPowerUpTaken packetPowerUpTaken) {
+                    receivedGameId = packetPowerUpTaken.getGameId();
+                } else if (object instanceof PacketPlayerExitedGame packetPlayerExitedGame) {
+                    receivedGameId = packetPlayerExitedGame.getGameId();
                 }
 
                 Game currentGame = null;
@@ -238,20 +247,32 @@ public class GameServer {
 
                     if (object instanceof PacketSendCoordinates packet) {
                         int playerID = packet.getPlayerID();
-                        Player peer = currentGame.getPlayers().get(playerID);
+                        if (currentGame.getPlayers().containsKey(playerID)) {
+                            Player peer = currentGame.getPlayers().get(playerID);
 
-                        peer.setX(packet.getX());
-                        peer.setY(packet.getY());
-                        peer.setTiledX(packet.getTiledX());
-                        peer.setTiledY(packet.getTiledY());
-                        peer.setState(packet.getState());
-                        peer.setSpriteId(packet.getSpriteId());
-                        server.sendToAllUDP(object);
+                            peer.setX(packet.getX());
+                            peer.setY(packet.getY());
+                            peer.setTiledX(packet.getTiledX());
+                            peer.setTiledY(packet.getTiledY());
+                            peer.setState(packet.getState());
+                            peer.setSpriteId(packet.getSpriteId());
+                            server.sendToAllUDP(object);
+                        }
+
                     }
 
                     if (object instanceof  PacketPowerUpTaken packet) {
                         for (Map.Entry<Integer, Player> set : currentGame.getPlayers().entrySet()) {
                             server.sendToTCP(set.getKey(), packet);
+                        }
+                    }
+
+                    if (object instanceof PacketPlayerExitedGame packet) {
+                        currentGame.removePlayer(packet.getId());
+                        for (Map.Entry<Integer, Player> set : currentGame.getPlayers().entrySet()) {
+                            if (set.getKey() != packet.getId()) {
+                                server.sendToTCP(set.getKey(), packet);
+                            }
                         }
                     }
 

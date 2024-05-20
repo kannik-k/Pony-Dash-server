@@ -4,7 +4,6 @@ import ee.taltech.game.server.Game;
 import ee.taltech.game.server.GameServer;
 import ee.taltech.game.server.GameWorld;
 import ee.taltech.game.server.Player;
-import ee.taltech.game.server.ai.AStar;
 import ee.taltech.game.server.packets.PacketCaptured;
 import ee.taltech.game.server.packets.PacketOnNpcMove;
 
@@ -63,18 +62,16 @@ public class NPC {
             if (gameWorld.getAiBots().isEmpty()) {
                 decisionExecutor.shutdown(); // Shut down this method when the game with this npc does not exist anymore
             }
-            if (path == null || path.isEmpty()) {
-                if (Duration.between(captureStart, LocalDateTime.now()).toMillis() > 10000) {
-                    Map<Player, List<Integer>> closestPlayer = findClosestPlayer();
-                    if (!closestPlayer.isEmpty()) {
-                        int xCur = closestPlayer.entrySet().iterator().next().getValue().get(0);
-                        int yCur = closestPlayer.entrySet().iterator().next().getValue().get(1);
-                        path = aStar.findPath(tiledX / 16, tiledY / 16, xCur / 16, yCur / 16);
-                    }
+            if ((path == null || path.isEmpty()) && Duration.between(captureStart, LocalDateTime.now()).toMillis() > 10000) {
+                Map<Player, List<Integer>> closestPlayer = findClosestPlayer();
+                if (!closestPlayer.isEmpty()) {
+                    int xCur = closestPlayer.entrySet().iterator().next().getValue().get(0);
+                    int yCur = closestPlayer.entrySet().iterator().next().getValue().get(1);
+                    path = aStar.findPath(tiledX / 16, tiledY / 16, xCur / 16, yCur / 16);
                 }
             }
         };
-        decisionExecutor.scheduleAtFixedRate(decisionRunnable, 2000, 2, TimeUnit.MILLISECONDS);
+        decisionExecutor.scheduleAtFixedRate(decisionRunnable, 2000, 1, TimeUnit.MILLISECONDS);
 
         // Executor for movement updates (lower frequency)
         ScheduledExecutorService movementExecutor = Executors.newScheduledThreadPool(1);
@@ -95,7 +92,7 @@ public class NPC {
                 gameServer.sendInfoAboutBotMoving(movement, gameId);
             }
         };
-        movementExecutor.scheduleAtFixedRate(movementRunnable, 2000, 60, TimeUnit.MILLISECONDS);
+        movementExecutor.scheduleAtFixedRate(movementRunnable, 2000, 50, TimeUnit.MILLISECONDS);
     }
 
     private Map<Player, List<Integer>> findClosestPlayer() {
@@ -127,11 +124,11 @@ public class NPC {
             if (shortestDistance <= 3 * 16) { // If player is 2 tiles away then capture
                 PacketCaptured packetCaptured = new PacketCaptured();
                 packetCaptured.setTime(LocalDateTime.now().toString());
-                packetCaptured.setPlayerId(closestPlayer.getId());
+                packetCaptured.setPlayerId(closestPlayer.getId()); // Cannot be null because the npc object would be removed from the game and the executor would be stopped if there aren't be any players in the game
                 captureStart = LocalDateTime.now();
                 gameServer.sendInfoAboutCapture(packetCaptured);
             }
-            if (shortestDistance < 30 * 16) { // If player is at max 30 tiles away then follow them
+            if (shortestDistance < 25 * 16) { // If player is at max 25 tiles away then follow them
                 return newMap;
             }
         }
