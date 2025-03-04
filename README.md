@@ -1,6 +1,7 @@
 # iti0301-2024-server
 
-
+## Authors
+Karoliina Kannik, Aet-Kadi Kald, Faina Dõmša
 
 ## Getting started
 
